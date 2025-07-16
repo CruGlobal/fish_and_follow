@@ -1,4 +1,6 @@
-FROM node:22-alpine AS base
+# NODE_VERSION set by build.sh based on .tool-versions file
+ARG NODE_VERSION=lts
+FROM public.ecr.aws/docker/library/node:${NODE_VERSION}-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
@@ -19,6 +21,7 @@ COPY ./fish-and-follow-server /app
 RUN pnpm run build
 
 FROM back-end-base AS final
+LABEL "com.datadoghq.ad.logs"='[{"source": "node", "service": "fish-and-follow", "log_processing_rules": [{"type": "exclude_at_match", "name": "exclude_heath_checks", "pattern": "/healthcheck"}]}]'
 RUN pnpm install --prod
 ENV PORT=3000
 EXPOSE 3000

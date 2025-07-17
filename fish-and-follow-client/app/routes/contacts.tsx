@@ -1,5 +1,7 @@
 import { useState } from "react";
+import WhatsappLink from "~/components/WhatsappLink";
 import type { Route } from "./+types/contacts";
+import { useNavigate } from "react-router";
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -47,6 +49,7 @@ const mockContacts: Contact[] = [
 ];
 
 export default function Contacts() {
+  const navigate = useNavigate();
   const [contacts, setContacts] = useState<Contact[]>(mockContacts);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -108,6 +111,12 @@ export default function Contacts() {
                 >
                 Admin Panel
               </a>
+              <button
+                onClick={() => navigate("/")}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700"
+              >
+                Logout
+              </button>
             </div>
           </div>
         </div>
@@ -177,7 +186,8 @@ export default function Contacts() {
                           Created: {formatDate(contact.createdAt)}
                         </p>
                       </div>
-                      <div className="flex space-x-2 ml-4">
+                      <div className="flex gap-4 ml-4">
+                        <WhatsappLink number="14169965733" message="hi there lol" className="w-32 bg-green-400 text-white"/>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();

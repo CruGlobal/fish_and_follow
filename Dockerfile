@@ -25,7 +25,11 @@ LABEL "com.datadoghq.ad.logs"='[{"source": "node", "service": "fish-and-follow",
 RUN pnpm install --prod
 ENV PORT=3000
 EXPOSE 3000
-COPY --from=front-end /app/build /app/public
+COPY --from=front-end /app/build/client /app/public
 COPY --from=back-end /app/dist /app/dist
+# Define volumes used by ECS to share public html and extra nginx config with nginx container
+VOLUME /app/public
+VOLUME /app/nginx-conf
+
 CMD ["node", "dist/app.js"]
 

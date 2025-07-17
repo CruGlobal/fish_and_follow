@@ -125,38 +125,6 @@ class ApiService {
       body: JSON.stringify(credentials),
     });
   }
-
-  async logout(): Promise<void> {
-    return this.request<void>("/auth/logout", {
-      method: "POST",
-    });
-  }
-
-  async getCurrentUser(): Promise<User> {
-    return this.request<User>("/auth/me");
-  }
-
-  // Okta integration endpoints
-  async oktaLogin(): Promise<{ redirectUrl: string }> {
-    return this.request<{ redirectUrl: string }>("/auth/okta/login");
-  }
-
-  async oktaCallback(code: string, state: string): Promise<{ user: User; token: string }> {
-    return this.request<{ user: User; token: string }>("/auth/okta/callback", {
-      method: "POST",
-      body: JSON.stringify({ code, state }),
-    });
-  }
-
-  // Stats endpoints
-  async getSystemStats(): Promise<{
-    totalContacts: number;
-    totalUsers: number;
-    activeUsers: number;
-    newContactsThisWeek: number;
-  }> {
-    return this.request("/admin/stats");
-  }
 }
 
 export const apiService = new ApiService();

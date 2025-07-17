@@ -8,6 +8,7 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
+// NOTE: talk to person developing the database schema to ensure this interface definition matches
 interface User {
   id: string;
   name: string;

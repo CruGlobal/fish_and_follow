@@ -26,9 +26,6 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get('/', (req: Request, res: Response) => {
-  res.send('Hello from Express with TypeScript!');
-});
 
 app.use(session({
   secret: 'CanYouLookTheOtherWay',
@@ -43,6 +40,20 @@ app.use(session({
 
 app.use(passport.initialize());
 app.use(passport.session());
+
+app.get('/api/auth/status', (req: Request, res: Response) => {
+  res.json({ 
+    authenticated: req.isAuthenticated(),
+    user: req.user || null
+  });
+  console.log(req.isAuthenticated())
+});
+
+
+app.get('/', (req: Request, res: Response) => {
+  res.send('Hello from Express with TypeScript!');
+});
+
 
 // Passport configuration
 passport.use('oidc', new Strategy({
@@ -90,6 +101,7 @@ app.use('/authorization-code/callback',
   passport.authenticate('oidc', { failureMessage: true, failWithError: true }),
   (req: Request, res: Response) => {
     // Redirect to your frontend after successful auth
+    console.log(req.user)
     res.redirect('http://localhost:5173/contacts');
   }
 );

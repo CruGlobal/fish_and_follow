@@ -8,20 +8,20 @@ import { relations } from 'drizzle-orm';
 export const RoleEnum = pgEnum('role_enum', ['admin', 'user']);
 
 // change year to 1st,2nd,3rd,4th...
-export const YearEnum = pgEnum('year_enum', ['freshman', 'sophomore', 'junior', 'senior']);
-// export const YearEnum = pgEnum('year_enum', [
-//   '1st_year',
-//   '2nd_year',
-//   '3rd_year',
-//   '4th_year',
-//   '5th_year',
-//   '6th_year',
-//   '7th_year',
-//   '8th_year',
-//   '9th_year',
-//   '10th_year',
-//   '11th_year'
-// ]);
+// export const YearEnum = pgEnum('year_enum', ['freshman', 'sophomore', 'junior', 'senior']);
+export const YearEnum = pgEnum('year_enum', [
+  '1st_year',
+  '2nd_year',
+  '3rd_year',
+  '4th_year',
+  '5th_year',
+  '6th_year',
+  '7th_year',
+  '8th_year',
+  '9th_year',
+  '10th_year',
+  '11th_year'
+]);
 
 export const GenderEnum = pgEnum('gender_enum', ['male', 'female'])
 

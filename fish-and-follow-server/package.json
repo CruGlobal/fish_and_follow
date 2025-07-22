@@ -1,7 +1,6 @@
 {
   "name": "fish-and-follow-server",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "scripts": {
     "start": "node dist/app.js",
@@ -16,14 +15,16 @@
   "packageManager": "pnpm@10.12.4",
   "dependencies": {
     "dotenv": "^17.2.0",
+    "drizzle-orm": "^0.44.3",
     "express": "^5.1.0",
-    "globals": "^16.3.0"
+    "globals": "^16.3.0",
+    "pg": "^8.16.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.31.0",
     "@types/dotenv": "^8.2.3",
     "@types/express": "^5.0.3",
-    "@types/node": "^24.0.14",
+    "@types/node": "^24.0.15",
     "@typescript-eslint/eslint-plugin": "^8.37.0",
     "@typescript-eslint/parser": "^8.37.0",
     "eslint": "^9.31.0",
@@ -34,5 +35,6 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.37.0"
-  }
+  },
+  "description": ""
 }

@@ -5,13 +5,14 @@ import session from 'express-session';
 import passport from 'passport';
 import { Strategy } from 'passport-openidconnect';
 import { requireAuth } from './middleware/auth';
+import { CipherKey } from 'crypto';
 
 dotenv.config();
 
 const oktaClientID = process.env.OKTA_CLIENT_ID;
 const oktaClientSecret = process.env.OKTA_CLIENT_SECRET;
 const oktaDomain = process.env.OKTA_DOMAIN_URL;
-const sessionSecret = process.env.SESSION_SECRET;
+const sessionSecret = process.env.SESSION_SECRET as CipherKey;
 
 const app = express();
 const port = process.env.PORT || 3000;

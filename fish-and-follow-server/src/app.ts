@@ -11,9 +11,11 @@ dotenv.config();
 const oktaClientID = process.env.OKTA_CLIENT_ID;
 const oktaClientSecret = process.env.OKTA_CLIENT_SECRET;
 const oktaDomain = process.env.OKTA_DOMAIN_URL;
+import whatsappRouter from './whatsapp-api/whatsapp-endpoints';
 
 const app = express();
 const port = process.env.PORT || 3000;
+
 const protectedRouter = express.Router();
 
 // Apply auth middleware to all routes in this router
@@ -53,6 +55,11 @@ app.get('/api/auth/status', (req: Request, res: Response) => {
   });
 });
 
+// Middleware to parse JSON bodies
+app.use(express.json());
+
+// Use WhatsApp router for all WhatsApp-related endpoints
+app.use('/api/v1/whatsapp', whatsappRouter);
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello from Express with TypeScript!');

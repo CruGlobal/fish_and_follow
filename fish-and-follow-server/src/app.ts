@@ -11,10 +11,19 @@ dotenv.config();
 const oktaClientID = process.env.OKTA_CLIENT_ID;
 const oktaClientSecret = process.env.OKTA_CLIENT_SECRET;
 const oktaDomain = process.env.OKTA_DOMAIN_URL;
+const sessionSecret = process.env.SESSION_SECRET;
 
 const app = express();
 const port = process.env.PORT || 3000;
 const protectedRouter = express.Router();
+
+/**
+ * This is a helathcheck for container monitoring (datadog).
+ * Just needs to respond with 200. Does not require auth.
+ */
+app.get('/healthcheck', (_req, res: Response) => {
+  res.status(200).send("Ok");
+});
 
 // Apply auth middleware to all routes in this router
 protectedRouter.use(requireAuth);
@@ -33,7 +42,7 @@ app.use(express.urlencoded({ extended: true }));
 
 
 app.use(session({
-  secret: 'CanYouLookTheOtherWay',
+  secret: sessionSecret,
   resave: false,
   saveUninitialized: true,
   cookie: {
@@ -47,7 +56,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.get('/api/auth/status', (req: Request, res: Response) => {
-  res.json({ 
+  res.json({
     authenticated: req.isAuthenticated(),
     user: req.user || null
   });
@@ -87,15 +96,15 @@ app.use('/signin', passport.authenticate('oidc'));
 app.post('/signout', (req: Request, res: Response, next: any) => {
   req.logout((err: any) => {
     if (err) { return next(err); }
-    
+
     req.session.destroy((err: any) => {
       if (err) { return next(err); }
-      
+
       // Send JSON response instead of redirect
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         message: 'Logged out successfully',
-        redirectUrl: 'http://localhost:5173/' 
+        redirectUrl: 'http://localhost:5173/'
       });
     });
   });

@@ -5,10 +5,13 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLocation,
 } from "react-router";
 
-import { Navigation } from "./components/Navigation";
+import type { Route } from "./+types/root";
 import "./app.css";
+import { Navigation } from "./components/Navigation";
+import { AuthProvider } from "./contexts/AuthContext";
 
 export const links = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -24,6 +27,7 @@ export const links = () => [
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const location = useLocation();
   return (
     <html lang="en">
       <head>
@@ -33,10 +37,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body className="bg-gray-50">
-        <Navigation />
-        {children}
-        <ScrollRestoration />
-        <Scripts />
+        <AuthProvider>
+          <Navigation currentPath={location.pathname} />
+          {children}
+          <ScrollRestoration />
+          <Scripts />
+        </AuthProvider>
       </body>
     </html>
   );
@@ -49,6 +55,7 @@ export default function App() {
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   let details = "An unexpected error occurred.";
   let stack: string | undefined;
+  let message: string | undefined;
 
   if (isRouteErrorResponse(error)) {
     message = error.status === 404 ? "404" : "Error";

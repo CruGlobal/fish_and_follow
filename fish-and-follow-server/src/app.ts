@@ -4,6 +4,7 @@ import express, { Request, Response } from 'express';
 import session from 'express-session';
 import passport from 'passport';
 import { Strategy } from 'passport-openidconnect';
+import { requireAuth } from './middleware/auth';
 
 dotenv.config();
 
@@ -13,6 +14,10 @@ const oktaDomain = process.env.OKTA_DOMAIN_URL;
 
 const app = express();
 const port = process.env.PORT || 3000;
+const protectedRouter = express.Router();
+
+// Apply auth middleware to all routes in this router
+protectedRouter.use(requireAuth);
 
 // Proper CORS configuration
 app.use(cors({
@@ -46,7 +51,6 @@ app.get('/api/auth/status', (req: Request, res: Response) => {
     authenticated: req.isAuthenticated(),
     user: req.user || null
   });
-  console.log(req.isAuthenticated())
 });
 
 
@@ -101,7 +105,6 @@ app.use('/authorization-code/callback',
   passport.authenticate('oidc', { failureMessage: true, failWithError: true }),
   (req: Request, res: Response) => {
     // Redirect to your frontend after successful auth
-    console.log(req.user)
     res.redirect('http://localhost:5173/contacts');
   }
 );

@@ -1,24 +1,43 @@
 import { useState } from "react";
+import { Link } from "react-router";
+import { useAuth } from "../contexts/AuthContext";
 
 interface NavigationProps {
   currentPath?: string;
 }
 
-export function Navigation({ currentPath }: NavigationProps) {
+export function Navigation({ 
+  currentPath
+}: NavigationProps) {
+  const { isAuthenticated, user, logout: onLogout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const publicLinks = [
     { href: "/", label: "Contact Form" },
     { href: "/resources", label: "Resources" },
-    { href: "/login", label: "Login" },
   ];
 
-  const privateLinks = [
+  const authenticatedLinks = [
     { href: "/contacts", label: "Contacts" },
     { href: "/admin", label: "Admin" },
   ];
 
   const isCurrentPath = (path: string) => currentPath === path;
+
+  const getVisibleLinks = () => {
+    if (isAuthenticated) {
+      return [...publicLinks, ...authenticatedLinks];
+    }
+    return publicLinks;
+  };
+
+  const visibleLinks = getVisibleLinks();
+
+  const handleLogout = () => {
+    if (onLogout) {
+      onLogout();
+    }
+  };
 
   return (
     <nav className="bg-white shadow-lg">
@@ -26,15 +45,15 @@ export function Navigation({ currentPath }: NavigationProps) {
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <a href="/" className="text-xl font-bold text-gray-900">
+              <Link to="/" className="text-xl font-bold text-gray-900">
                 Fish & Follow
-              </a>
+              </Link>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              {publicLinks.map((link) => (
-                <a
+              {visibleLinks.map((link) => (
+                <Link
                   key={link.href}
-                  href={link.href}
+                  to={link.href}
                   className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
                     isCurrentPath(link.href)
                       ? "border-blue-500 text-gray-900"
@@ -42,25 +61,36 @@ export function Navigation({ currentPath }: NavigationProps) {
                   }`}
                 >
                   {link.label}
-                </a>
+                </Link>
               ))}
             </div>
           </div>
           
-          <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-8">
-            {privateLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
+          <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-4">
+            {isAuthenticated ? (
+              <div className="flex items-center space-x-4">
+                <span className="text-sm text-gray-700">
+                  Welcome, {user?.displayName || user?.username}
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="text-sm text-gray-500 hover:text-gray-700 font-medium"
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/login"
                 className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                  isCurrentPath(link.href)
+                  isCurrentPath("/login")
                     ? "border-blue-500 text-gray-900"
                     : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
                 }`}
               >
-                {link.label}
-              </a>
-            ))}
+                Login
+              </Link>
+            )}
           </div>
 
           <div className="-mr-2 flex items-center sm:hidden">
@@ -106,10 +136,10 @@ export function Navigation({ currentPath }: NavigationProps) {
       {isMenuOpen && (
         <div className="sm:hidden">
           <div className="pt-2 pb-3 space-y-1">
-            {[...publicLinks, ...privateLinks].map((link) => (
-              <a
+            {visibleLinks.map((link) => (
+              <Link
                 key={link.href}
-                href={link.href}
+                to={link.href}
                 className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
                   isCurrentPath(link.href)
                     ? "bg-blue-50 border-blue-500 text-blue-700"
@@ -118,8 +148,40 @@ export function Navigation({ currentPath }: NavigationProps) {
                 onClick={() => setIsMenuOpen(false)}
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
+            
+            {/* Mobile auth section */}
+            <div className="border-t border-gray-200 pt-2">
+              {isAuthenticated ? (
+                <div className="space-y-1">
+                  <div className="block pl-3 pr-4 py-2 text-base font-medium text-gray-600">
+                    Welcome, {user?.displayName || user?.username}
+                  </div>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsMenuOpen(false);
+                    }}
+                    className="block w-full text-left pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <Link
+                  to="/login"
+                  className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
+                    isCurrentPath("/login")
+                      ? "bg-blue-50 border-blue-500 text-blue-700"
+                      : "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"
+                  }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Login
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       )}

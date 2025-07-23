@@ -9,4 +9,5 @@ export default [
     route("/qr", "routes/qr.tsx")
   ]),
   route("/resources", "routes/resources.tsx"),
+  route("/bulkmessaging", "routes/bulkmessaging.tsx"),
 ] satisfies RouteConfig;

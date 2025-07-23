@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import DebouncedPaginatedSearch from '~/components/DebouncedPaginatedSearch'
 import SelectedContactsBadges from '~/components/SelectedContactsBadges'
+import TemplateSelector from '~/components/TemplateSelector';
 
 // Items type interface
 interface Item {
@@ -87,7 +88,7 @@ export default function BulkMessaging() {
         selectedItems={selectedContacts.map(contact => contact.key)}
       />
       
-      
+      <TemplateSelector />
     </main>
   )
 }

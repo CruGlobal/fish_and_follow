@@ -25,6 +25,16 @@ interface User {
   createdAt: string;
 }
 
+interface Template {
+  id: string;
+  name: string;
+  subject: string;
+  content: string;
+  variables: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 class ApiService {
   private async request<T>(
     endpoint: string,
@@ -123,7 +133,16 @@ class ApiService {
       body: JSON.stringify(credentials),
     });
   }
+
+  // Template endpoints
+  async getTemplates(): Promise<Template[]> {
+    return this.request<Template[]>("/templates");
+  }
+
+  async getTemplate(id: string): Promise<Template> {
+    return this.request<Template>(`/templates/${id}`);
+  }
 }
 
 export const apiService = new ApiService();
-export type { Contact, User, ContactFormData };
+export type { Contact, User, ContactFormData, Template };

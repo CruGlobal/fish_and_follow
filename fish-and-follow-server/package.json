@@ -25,6 +25,7 @@
     "globals": "^16.3.0",
     "passport": "^0.7.0",
     "passport-openidconnect": "^0.1.2",
+    "whatsapp": "0.0.5-Alpha",
     "qrcode": "^1.5.4",
     "pg": "^8.16.3"
   },

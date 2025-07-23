@@ -1,13 +1,9 @@
 import { Router } from 'express';
 import { db } from '../db/client';
 import { contact } from '../db/schema';
-import { followUpStatus } from '../db/schema';
 import { eq } from 'drizzle-orm';
 
 export const contactsRouter = Router();
-
-// seed script
-// await db.insert(followUpStatus).values({ number: 1, description: "First contact" });
 
 // Get all contacts
 contactsRouter.get('/', async (_req, res) => {

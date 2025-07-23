@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { db } from '../db/client';
 import { user } from '../db/schema';
-import { contact } from '../db/schema';
 import { eq } from 'drizzle-orm';
 
 export const usersRouter = Router();

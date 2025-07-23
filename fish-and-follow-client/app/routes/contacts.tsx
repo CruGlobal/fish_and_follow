@@ -1,7 +1,7 @@
-import type { Route } from "./+types/contacts";
 import { useState } from "react";
+import type { Route } from "./+types/contacts";
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ }: Route.MetaArgs) {
   return [
     { title: "Contacts Management - Fish and Follow" },
     { name: "description", content: "Manage all contacts" },
@@ -105,15 +105,9 @@ export default function Contacts() {
               <a
                 href="/admin"
                 className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
+                >
                 Admin Panel
               </a>
-              <button
-                onClick={() => (window.location.href = "/")}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700"
-              >
-                Logout
-              </button>
             </div>
           </div>
         </div>
@@ -157,9 +151,8 @@ export default function Contacts() {
                 {filteredContacts.map((contact) => (
                   <div
                     key={contact.id}
-                    className={`px-6 py-4 hover:bg-gray-50 cursor-pointer ${
-                      selectedContact?.id === contact.id ? "bg-blue-50" : ""
-                    }`}
+                    className={`px-6 py-4 hover:bg-gray-50 cursor-pointer ${selectedContact?.id === contact.id ? "bg-blue-50" : ""
+                      }`}
                     onClick={() => handleViewContact(contact)}
                   >
                     <div className="flex justify-between items-start">
@@ -257,7 +250,7 @@ export default function Contacts() {
                     </svg>
                   </button>
                 </div>
-                
+
                 {isEditMode ? (
                   <div className="space-y-4">
                     <p className="text-sm text-gray-500 mb-4">Edit mode - Contact editing form would go here</p>

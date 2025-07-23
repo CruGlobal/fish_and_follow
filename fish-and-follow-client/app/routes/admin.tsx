@@ -1,5 +1,17 @@
-import type { Route } from "./+types/admin";
 import { useState } from "react";
+import { Button } from "~/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import type { Route } from "./+types/admin";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -16,7 +28,7 @@ interface User {
   role: "admin" | "user";
   status: "active" | "inactive";
   lastLogin?: string;
-  createdAt: string;
+  createdAt: string;  
 }
 
 interface SystemStats {
@@ -24,6 +36,13 @@ interface SystemStats {
   totalUsers: number;
   activeUsers: number;
   newContactsThisWeek: number;
+}
+
+interface NewContact {
+  fullName: string;
+  email: string;
+  phone?: string;
+  organization?: string;
 }
 
 // Mock data
@@ -68,6 +87,13 @@ export default function Admin() {
   const [stats] = useState<SystemStats>(mockStats);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showAddUser, setShowAddUser] = useState(false);
+  const [showNewContact, setShowNewContact] = useState(false);
+  const [newContact, setNewContact] = useState<NewContact>({
+    fullName: "",
+    email: "",
+    phone: "",
+    organization: ""
+  });
 
   const handleToggleUserStatus = (userId: string) => {
     setUsers(users.map(user => 
@@ -84,6 +110,24 @@ export default function Admin() {
         setSelectedUser(null);
       }
     }
+  };
+
+  const handleNewContactChange = (field: keyof NewContact, value: string) => {
+    setNewContact(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSubmitNewContact = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Here you would typically send the data to your API
+    console.log("New contact created:", newContact);
+    alert(`Contact created successfully!\n\nName: ${newContact.fullName}\nEmail: ${newContact.email}`);
+    
+    // Reset form and close dialog
+    setNewContact({ fullName: "", email: "", phone: "", organization: "" });
+    setShowNewContact(false);
   };
 
   const formatDate = (dateString: string) => {
@@ -109,6 +153,155 @@ export default function Admin() {
               </p>
             </div>
             <div className="flex space-x-4">
+              <Dialog open={showNewContact} onOpenChange={setShowNewContact}>
+                <DialogTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 text-blue-700 hover:from-blue-100 hover:to-indigo-100 hover:border-blue-300 transition-all duration-200 shadow-sm"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    New Contact
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[300px] max-h-[70vh] overflow-y-auto bg-blue-50 border-blue-200">
+                  <DialogHeader className="pb-3 border-b border-blue-200">
+                    <DialogTitle className="text-base font-semibold text-blue-900 flex items-center">
+                      <div className="w-5 h-5 bg-blue-200 rounded-full flex items-center justify-center mr-2">
+                        <svg className="w-3 h-3 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                      Create New Contact
+                    </DialogTitle>
+                    <DialogDescription className="text-blue-700 mt-1 ml-7 text-xs">
+                      Add a new contact to your database.
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <form onSubmit={handleSubmitNewContact} className="space-y-3 pt-3">
+                    {/* Personal Information Section */}
+                    <div className="space-y-2">
+                      <h3 className="text-xs font-medium text-blue-800 border-l-2 border-blue-600 pl-2">
+                        Personal Information
+                      </h3>
+                      
+                      <div className="grid grid-cols-1 gap-2">
+                        <div className="space-y-1">
+                          <Label 
+                            htmlFor="fullName" 
+                            className="text-xs font-medium text-blue-800 flex items-center"
+                          >
+                            <svg className="w-3 h-3 mr-1 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            Full Name *
+                          </Label>
+                          <Input
+                            id="fullName"
+                            value={newContact.fullName}
+                            onChange={(e) => handleNewContactChange("fullName", e.target.value)}
+                            placeholder="Enter full name"
+                            className="text-xs h-8 transition-all duration-200 border-blue-300 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400"
+                            required
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <Label 
+                            htmlFor="email" 
+                            className="text-xs font-medium text-blue-800 flex items-center"
+                          >
+                            <svg className="w-3 h-3 mr-1 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                            </svg>
+                            Email Address *
+                          </Label>
+                          <Input
+                            id="email"
+                            type="email"
+                            value={newContact.email}
+                            onChange={(e) => handleNewContactChange("email", e.target.value)}
+                            placeholder="john.doe@example.com"
+                            className="text-xs h-8 transition-all duration-200 border-blue-300 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400"
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Contact Information Section */}
+                    <div className="space-y-2">
+                      <h3 className="text-xs font-medium text-blue-800 border-l-2 border-blue-600 pl-2">
+                        Contact Information
+                      </h3>
+                      
+                      <div className="grid grid-cols-1 gap-2">
+                        <div className="space-y-1">
+                          <Label 
+                            htmlFor="phone" 
+                            className="text-xs font-medium text-blue-800 flex items-center"
+                          >
+                            <svg className="w-3 h-3 mr-1 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                            </svg>
+                            Phone Number
+                          </Label>
+                          <Input
+                            id="phone"
+                            type="tel"
+                            value={newContact.phone}
+                            onChange={(e) => handleNewContactChange("phone", e.target.value)}
+                            placeholder="+1 (555) 123-4567"
+                            className="text-xs h-8 transition-all duration-200 border-blue-300 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <Label 
+                            htmlFor="organization" 
+                            className="text-xs font-medium text-blue-800 flex items-center"
+                          >
+                            <svg className="w-3 h-3 mr-1 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                            University/Organization
+                          </Label>
+                          <Input
+                            id="organization"
+                            value={newContact.organization}
+                            onChange={(e) => handleNewContactChange("organization", e.target.value)}
+                            placeholder="Enter university name"
+                            className="text-xs h-8 transition-all duration-200 border-blue-300 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Form Actions */}
+                    <DialogFooter className="pt-3 border-t border-blue-200 flex-col sm:flex-row gap-2">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => setShowNewContact(false)}
+                        className="w-full sm:w-auto order-2 sm:order-1 text-xs h-8 transition-all duration-200 border-blue-300 text-blue-700 hover:bg-blue-50"
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        type="submit"
+                        className="w-full sm:w-auto order-1 sm:order-2 text-xs h-8 bg-blue-600 hover:bg-blue-700 transition-all duration-200 shadow-sm hover:shadow-md"
+                      >
+                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Create Contact
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
               <a
                 href="/contacts"
                 className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"

@@ -25,14 +25,35 @@ interface User {
   createdAt: string;
 }
 
-interface Template {
+interface ContactSearchResponse {
+  contacts: Contact[];
+  total: number;
+  searchQuery: string | null;
+  fuzzySearch: boolean;
+  threshold: number;
+  timestamp: string;
+}
+
+interface TemplateComponent {
+  type: "HEADER" | "BODY" | "FOOTER";
+  text: string;
+  format?: "TEXT";
+}
+
+interface TemplateItem {
   id: string;
   name: string;
-  subject: string;
-  content: string;
-  variables: string[];
-  createdAt: string;
-  updatedAt: string;
+  language: string;
+  status: string;
+  category: string;
+  components: TemplateComponent[];
+}
+
+interface Template {
+  success: boolean
+  templates: TemplateItem[];
+  timestamp: string;
+  total: number;
 }
 
 class ApiService {
@@ -80,8 +101,14 @@ class ApiService {
     });
   }
 
-  async getContacts(): Promise<Contact[]> {
-    return this.request<Contact[]>("/contacts");
+  async getContacts(search?: string): Promise<Contact[]> {
+    const searchParam = search ? `?search=${encodeURIComponent(search)}` : '';
+    const response = await this.request<ContactSearchResponse>(`/contacts${searchParam}`);
+    return response.contacts;
+  }
+
+  async searchContacts(query: string): Promise<Contact[]> {
+    return this.getContacts(query);
   }
 
   async getContact(id: string): Promise<Contact> {
@@ -135,14 +162,14 @@ class ApiService {
   }
 
   // Template endpoints
-  async getTemplates(): Promise<Template[]> {
-    return this.request<Template[]>("/templates");
+  async getTemplates(): Promise<Template> {
+    return this.request<Template>("/whatsapp/templates");
   }
 
-  async getTemplate(id: string): Promise<Template> {
-    return this.request<Template>(`/templates/${id}`);
+  async getTemplate(name: string): Promise<TemplateItem> {
+    return this.request<TemplateItem>(`/whatsapp/templates/${name}`);
   }
 }
 
 export const apiService = new ApiService();
-export type { Contact, User, ContactFormData, Template };
+export type { Contact, User, ContactFormData, Template, TemplateItem, TemplateComponent };

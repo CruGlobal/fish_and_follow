@@ -19,7 +19,7 @@ function DebouncedPaginatedSearch({
   selectedItems = [],
 }: {
   items: any[];
-  onSearch: (query: string) => void;
+  onSearch: (query: string) => void | Promise<void>;
   onSelect?: (key: string) => void;
   selectedItems?: string[]; // Array of selected item keys to filter out
 }) {
@@ -30,7 +30,6 @@ function DebouncedPaginatedSearch({
   // Handle item selection
   const handleSelect = (value: string) => {
     onSelect?.(value);
-    console.log("Selected command:", value);
     // Clear the search input but keep dropdown open for multiple selections
     setUserSearch("");
     // Don't close the dropdown - let users add multiple contacts
@@ -40,8 +39,12 @@ function DebouncedPaginatedSearch({
   // Use the debounce search hook
   const { isSearching } = useDebounceSearch(
     userSearch,
-    (query) => {
-      onSearch(query);
+    async (query) => {
+      try {
+        await onSearch(query);
+      } catch (error) {
+        console.error('Search error:', error);
+      }
     },
     300, // 300ms delay
     0 // Minimum length (0 means search even with empty string)
@@ -80,7 +83,12 @@ function DebouncedPaginatedSearch({
 
   return (
     <div ref={containerRef} className="relative">
-      <Command className="border" loop>
+      <Command 
+        className="border" 
+        loop
+        shouldFilter={false}
+        value=""
+      >
         <CommandInput
           placeholder="Search contacts..."
           value={userSearch}
@@ -110,6 +118,9 @@ function DebouncedPaginatedSearch({
                 )}
                 {availableItems.length === 0 && !userSearch && selectedItems.length > 0 && (
                   <CommandEmpty>All contacts have been selected.</CommandEmpty>
+                )}
+                {availableItems.length === 0 && !userSearch && selectedItems.length === 0 && (
+                  <CommandEmpty>Start typing to search contacts...</CommandEmpty>
                 )}
                 {availableItems.length > 0 && (
                   <CommandGroup heading="Contacts">

@@ -22,6 +22,7 @@ const oktaClientID = process.env.OKTA_CLIENT_ID;
 const oktaClientSecret = process.env.OKTA_CLIENT_SECRET;
 const oktaDomain = process.env.OKTA_DOMAIN_URL;
 import whatsappRouter from './whatsapp-api/whatsapp-endpoints';
+import contactsRouter from './contacts/contact-endpoints';
 
 const sessionSecret = process.env.SESSION_SECRET as CipherKey;
 
@@ -36,12 +37,14 @@ app.get('/healthcheck', (_req, res: Response) => {
 });
 
 // Proper CORS configuration
-app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(
+  cors({
+    origin: ['http://localhost:5173', 'http://localhost:3000'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }),
+);
 
 // Body parsing middleware
 app.use(express.json());
@@ -75,9 +78,9 @@ passport.use('oidc', new Strategy({
   return done(null, profile);
 }));
 
-passport.serializeUser((user: any, next: any) => {
-  next(null, user);
-});
+  passport.serializeUser((user: any, next: any) => {
+    next(null, user);
+  });
 
 passport.deserializeUser((obj: any, next: any) => {
   next(null, obj);

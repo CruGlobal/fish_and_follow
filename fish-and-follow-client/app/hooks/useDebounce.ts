@@ -121,7 +121,7 @@ export function useAdvancedDebounce<T>(
  */
 export function useDebounceSearch(
   searchTerm: string,
-  onSearch: (term: string) => void,
+  onSearch: (term: string) => void | Promise<void>,
   delay = 300,
   minLength = 0
 ): {
@@ -153,22 +153,33 @@ export function useDebounceSearch(
     // Don't search if term is too short (but allow empty string if minLength is 0)
     if (searchTerm.length < minLength) {
       setIsSearching(false);
-      onSearchRef.current('');
+      const result = onSearchRef.current('');
+      if (result instanceof Promise) {
+        result.catch(error => console.error('Search error:', error));
+      }
       return;
     }
 
     // For empty search terms, execute immediately without debounce
     if (searchTerm === '' && minLength === 0) {
       setIsSearching(false);
-      onSearchRef.current('');
+      const result = onSearchRef.current('');
+      if (result instanceof Promise) {
+        result.catch(error => console.error('Search error:', error));
+      }
       return;
     }
 
     setIsSearching(true);
 
-    const handler = setTimeout(() => {
-      onSearchRef.current(searchTerm);
-      setIsSearching(false);
+    const handler = setTimeout(async () => {
+      try {
+        await onSearchRef.current(searchTerm);
+      } catch (error) {
+        console.error('Search error:', error);
+      } finally {
+        setIsSearching(false);
+      }
     }, delay);
 
     timeoutRef.current = handler;

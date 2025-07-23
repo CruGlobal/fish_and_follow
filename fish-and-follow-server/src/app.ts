@@ -1,6 +1,8 @@
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express, { Request, Response } from 'express';
+import fs from 'fs';
+import path from 'path';
 import session from 'express-session';
 import passport from 'passport';
 import { Strategy } from 'passport-openidconnect';
@@ -12,9 +14,30 @@ const oktaClientID = process.env.OKTA_CLIENT_ID;
 const oktaClientSecret = process.env.OKTA_CLIENT_SECRET;
 const oktaDomain = process.env.OKTA_DOMAIN_URL;
 
+
+const DATA_FILE = './resources.json';
 const app = express();
 const port = process.env.PORT || 3000;
 const protectedRouter = express.Router();
+
+type Resource = {
+  id: number;
+  title: string;
+  url: string;
+  description: string;
+}
+
+function loadResources(): Resource[] {
+  if (fs.existsSync(DATA_FILE)) {
+    const data = fs.readFileSync(DATA_FILE, 'utf-8');
+    return JSON.parse(data);
+  }
+  return [];
+}
+
+function saveResources(resources: Resource[]) {
+  fs.writeFileSync(DATA_FILE, JSON.stringify(resources, null, 2));
+}
 
 // Apply auth middleware to all routes in this router
 protectedRouter.use(requireAuth);
@@ -108,6 +131,25 @@ app.use('/authorization-code/callback',
     res.redirect('http://localhost:5173/contacts');
   }
 );
+
+app.get('/api/resources', (_req, res) => {
+  const resources = loadResources();
+  res.json(resources);
+});
+
+app.post('/api/resources', (req, res) => {
+  const { title, url, description } = req.body;
+  const resources = loadResources();
+  const newResource = {
+    id: resources.length + 1,
+    title,
+    url,
+    description
+  };
+  resources.push(newResource);
+  saveResources(resources);
+  res.status(201).json(newResource);
+});
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

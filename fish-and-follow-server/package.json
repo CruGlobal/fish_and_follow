@@ -21,7 +21,8 @@
     "express-session": "^1.18.1",
     "globals": "^16.3.0",
     "passport": "^0.7.0",
-    "passport-openidconnect": "^0.1.2"
+    "passport-openidconnect": "^0.1.2",
+    "whatsapp": "0.0.5-Alpha"
   },
   "devDependencies": {
     "@eslint/js": "^9.31.0",

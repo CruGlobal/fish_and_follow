@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
-import { rolesRouter } from './routes/roles.router';
 import { contactsRouter } from './routes/contacts.router';
+import { usersRouter } from './routes/users.router';
+import { rolesRouter } from './routes/roles.router';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 
@@ -26,7 +27,7 @@ app.get('/api/v1/fish', (req: Request, res: Response) => {
 // });
 
 app.use('/contacts', contactsRouter);
-
+app.use('/users', usersRouter);
 app.use('/roles', rolesRouter);
 
 export default app;

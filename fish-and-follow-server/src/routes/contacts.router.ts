@@ -23,10 +23,11 @@ contactsRouter.get('/:id', async (req, res) => {
   res.json(result[0]);
 });
 
-// Create contact
+// POST Create contact
 contactsRouter.post('/', async (req, res) => {
   const { firstName, lastName, phoneNumber, email, campus, 
     major, year, isInterested, gender, followUpStatusNumber } = req.body;
+    
   try {
     const inserted = await db.insert(contact).values({ firstName, lastName, 
         phoneNumber, email, campus, major, year, isInterested, gender, 
@@ -38,7 +39,7 @@ contactsRouter.post('/', async (req, res) => {
   }
 });
 
-// Update contact
+// PUT Update contact
 contactsRouter.put('/:id', async (req, res) => {
   const { id } = req.params;
   const { firstName, lastName, phoneNumber, email, campus, 
@@ -59,9 +60,10 @@ contactsRouter.put('/:id', async (req, res) => {
   }
 });
 
-// Delete contact
+// DELETE contact by ID
 contactsRouter.delete('/:id', async (req, res) => {
   const { id } = req.params;
+
   try {
     await db.delete(contact).where(eq(contact.id, id));
     res.status(204).send();

@@ -1,5 +1,5 @@
-import type { Route } from "./+types/login";
 import { useState } from "react";
+import type { Route } from "./+types/login";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -14,10 +14,7 @@ export default function Login() {
   const handleOktaLogin = async () => {
     setIsLoading(true);
     try {
-      // TODO: Implement Okta authentication
-      console.log("Initiating Okta login...");
-      // For now, just simulate a redirect
-      window.location.href = "/contacts";
+      window.location.href = 'http://localhost:3000/signin';
     } catch (error) {
       console.error("Login error:", error);
     } finally {

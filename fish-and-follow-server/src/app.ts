@@ -7,16 +7,22 @@ import { Strategy } from 'passport-openidconnect';
 import { requireAuth } from './middleware/auth';
 import { CipherKey } from 'crypto';
 
+import { contactsRouter } from './routes/contacts.router';
+import { usersRouter } from './routes/users.router';
+import { rolesRouter } from './routes/roles.router';
+import { followUpStatusRouter } from './routes/followUpStatus.router';
+import bodyParser from 'body-parser';
+
 dotenv.config();
+
+const app = express();
 
 const oktaClientID = process.env.OKTA_CLIENT_ID;
 const oktaClientSecret = process.env.OKTA_CLIENT_SECRET;
 const oktaDomain = process.env.OKTA_DOMAIN_URL;
 const sessionSecret = process.env.SESSION_SECRET as CipherKey;
 
-const app = express();
 const port = process.env.PORT || 3000;
-const protectedRouter = express.Router();
 
 /**
  * This is a helathcheck for container monitoring (datadog).
@@ -25,9 +31,6 @@ const protectedRouter = express.Router();
 app.get('/healthcheck', (_req, res: Response) => {
   res.status(200).send("Ok");
 });
-
-// Apply auth middleware to all routes in this router
-protectedRouter.use(requireAuth);
 
 // Proper CORS configuration
 app.use(cors({
@@ -40,7 +43,6 @@ app.use(cors({
 // Body parsing middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 
 app.use(session({
   secret: sessionSecret,
@@ -55,19 +57,6 @@ app.use(session({
 
 app.use(passport.initialize());
 app.use(passport.session());
-
-app.get('/api/auth/status', (req: Request, res: Response) => {
-  res.json({
-    authenticated: req.isAuthenticated(),
-    user: req.user || null
-  });
-});
-
-
-app.get('/', (req: Request, res: Response) => {
-  res.send('Hello from Express with TypeScript!');
-});
-
 
 // Passport configuration
 passport.use('oidc', new Strategy({
@@ -89,6 +78,17 @@ passport.serializeUser((user: any, next: any) => {
 
 passport.deserializeUser((obj: any, next: any) => {
   next(null, obj);
+});
+
+app.get('/', (req: Request, res: Response) => {
+  res.send('Hello from Express with TypeScript!');
+});
+
+app.get('/api/auth/status', (req: Request, res: Response) => {
+  res.json({
+    authenticated: req.isAuthenticated(),
+    user: req.user || null
+  });
 });
 
 app.use('/signin', passport.authenticate('oidc'));
@@ -119,6 +119,18 @@ app.use('/authorization-code/callback',
   }
 );
 
+const protectedRouter = express.Router();
+
+// Apply auth middleware to all routes in this router
+protectedRouter.use(requireAuth);
+
+app.use('/contacts', contactsRouter);
+app.use('/users', usersRouter);
+app.use('/follow-up-status', followUpStatusRouter);
+app.use('/roles', rolesRouter);
+
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+
+export default app;

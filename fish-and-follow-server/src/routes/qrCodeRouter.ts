@@ -9,6 +9,7 @@ export const qrRouter = Router();
  */
 qrRouter.get('/:orgId', async (req, res) => {
   const organizationId = req.params.orgId;
+  const download = req.query.download;
   console.log('Requesting QR Code for org', organizationId);
   // Todo get by organization - exact format not set.
   const url = `${process.env.BASE_URL}?organization=${organizationId}`;
@@ -19,9 +20,12 @@ qrRouter.get('/:orgId', async (req, res) => {
       dark: "#4993A1",
       light: "#CDF5FD",
     };
-    const qr = await QRCode.toBuffer(url, { type: 'png', color });
+    const qr = await QRCode.toBuffer(url, { type: 'png', color, scale: 8 });
     res.setHeader('content-type', 'image/png');
     res.setHeader('content-length', qr.length);
+    if (download) {
+      res.setHeader('Content-Disposition', 'attachment; filename=fish-and-follow-qr.png');
+    }
     res.status(200).send(qr);
   } catch (err) {
     console.error('Error generating QR code', err);

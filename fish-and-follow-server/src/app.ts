@@ -22,8 +22,6 @@ const oktaDomain = process.env.OKTA_DOMAIN_URL;
 
 const port = process.env.PORT || 3000;
 
-app.use(cors());
-
 // Proper CORS configuration
 app.use(cors({
   origin: ['http://localhost:5173', 'http://localhost:3000'],
@@ -35,7 +33,6 @@ app.use(cors({
 // Body parsing middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
--=======
 
 app.use(session({
   secret: 'CanYouLookTheOtherWay',

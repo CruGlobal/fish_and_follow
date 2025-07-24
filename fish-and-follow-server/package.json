@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node dist/app.js",
-    "dev": "nodemon --exec ts-node src/main.ts",
+    "dev": "nodemon --exec ts-node src/app.ts",
     "build": "tsc",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write \"src/**/*.ts\""
@@ -19,9 +19,8 @@
     "drizzle-orm": "^0.44.3",
     "express": "^5.1.0",
     "globals": "^16.3.0",
-    "pg": "^8.16.3"
+    "pg": "^8.16.3",
     "express-session": "^1.18.1",
-    "globals": "^16.3.0",
     "passport": "^0.7.0",
     "passport-openidconnect": "^0.1.2"
   },
@@ -29,7 +28,6 @@
     "@eslint/js": "^9.31.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
-    "@types/node": "^24.0.15",
     "@types/express-session": "^1.18.2",
     "@types/node": "^24.0.14",
     "@types/passport": "^1.0.17",

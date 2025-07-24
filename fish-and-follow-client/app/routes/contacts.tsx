@@ -12,12 +12,16 @@ export function meta({ }: Route.MetaArgs) {
 
 interface Contact {
   id: string;
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
+  phone_number: string;
   email: string;
-  phone: string;
-  company?: string;
-  message?: string;
+  campus: string;
+  major: string;
+  year: 'freshman' | 'sophomore' | 'junior' | 'senior' | 'graduate';
+  is_interested: boolean;
+  gender: 'male' | 'female' | 'non-binary' | 'prefer-not-to-say';
+  follow_up_status: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -26,23 +30,31 @@ interface Contact {
 const mockContacts: Contact[] = [
   {
     id: "1",
-    firstName: "John",
-    lastName: "Doe",
+    first_name: "John",
+    last_name: "Doe",
     email: "john.doe@example.com",
-    phone: "+1-555-123-4567",
-    company: "Acme Corp",
-    message: "Interested in your services",
+    phone_number: "+1-555-123-4567",
+    campus: "Main Campus",
+    major: "Computer Science",
+    year: "senior",
+    is_interested: true,
+    gender: "male",
+    follow_up_status: 1,
     createdAt: "2025-01-15T10:30:00Z",
     updatedAt: "2025-01-15T10:30:00Z",
   },
   {
     id: "2",
-    firstName: "Jane",
-    lastName: "Smith",
+    first_name: "Jane",
+    last_name: "Smith",
     email: "jane.smith@example.com",
-    phone: "+1-555-987-6543",
-    company: "Tech Solutions",
-    message: "Would like to schedule a demo",
+    phone_number: "+1-555-987-6543",
+    campus: "North Campus",
+    major: "Business Administration",
+    year: "junior",
+    is_interested: true,
+    gender: "female",
+    follow_up_status: 2,
     createdAt: "2025-01-14T14:20:00Z",
     updatedAt: "2025-01-14T14:20:00Z",
   },
@@ -57,10 +69,11 @@ export default function Contacts() {
 
   const filteredContacts = contacts.filter(
     (contact) =>
-      contact.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contact.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       contact.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contact.company?.toLowerCase().includes(searchTerm.toLowerCase())
+      contact.campus.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.major.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleDeleteContact = (id: string) => {
@@ -168,19 +181,20 @@ export default function Contacts() {
                       <div className="flex-1">
                         <div className="flex items-center">
                           <h3 className="text-sm font-medium text-gray-900">
-                            {contact.firstName} {contact.lastName}
+                            {contact.first_name} {contact.last_name}
                           </h3>
-                          {contact.company && (
-                            <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                              {contact.company}
-                            </span>
-                          )}
+                          <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {contact.campus}
+                          </span>
+                          <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            {contact.major}
+                          </span>
                         </div>
                         <p className="mt-1 text-sm text-gray-600">
                           {contact.email}
                         </p>
                         <p className="mt-1 text-sm text-gray-500">
-                          {contact.phone}
+                          {contact.phone_number}
                         </p>
                         <p className="mt-1 text-xs text-gray-400">
                           Created: {formatDate(contact.createdAt)}
@@ -287,7 +301,7 @@ export default function Contacts() {
                     <div>
                       <label className="block text-sm font-medium text-gray-500">Name</label>
                       <p className="mt-1 text-sm text-gray-900">
-                        {selectedContact.firstName} {selectedContact.lastName}
+                        {selectedContact.first_name} {selectedContact.last_name}
                       </p>
                     </div>
                     <div>
@@ -296,20 +310,28 @@ export default function Contacts() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-500">Phone</label>
-                      <p className="mt-1 text-sm text-gray-900">{selectedContact.phone}</p>
+                      <p className="mt-1 text-sm text-gray-900">{selectedContact.phone_number}</p>
                     </div>
-                    {selectedContact.company && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-500">Company</label>
-                        <p className="mt-1 text-sm text-gray-900">{selectedContact.company}</p>
-                      </div>
-                    )}
-                    {selectedContact.message && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-500">Message</label>
-                        <p className="mt-1 text-sm text-gray-900">{selectedContact.message}</p>
-                      </div>
-                    )}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-500">Campus</label>
+                      <p className="mt-1 text-sm text-gray-900">{selectedContact.campus}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-500">Major</label>
+                      <p className="mt-1 text-sm text-gray-900">{selectedContact.major}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-500">Year</label>
+                      <p className="mt-1 text-sm text-gray-900 capitalize">{selectedContact.year}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-500">Interested</label>
+                      <p className="mt-1 text-sm text-gray-900">{selectedContact.is_interested ? 'Yes' : 'No'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-500">Gender</label>
+                      <p className="mt-1 text-sm text-gray-900 capitalize">{selectedContact.gender}</p>
+                    </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-500">Created</label>
                       <p className="mt-1 text-sm text-gray-900">

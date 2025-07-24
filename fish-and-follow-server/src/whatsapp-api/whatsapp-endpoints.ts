@@ -1,14 +1,42 @@
 import { Router, Request, Response } from 'express';
-import { sendMessage, sendTemplateMessage, getTemplateMessages } from './whatsapp';
-import {
-  SendMessageRequest,
-  SendTemplateMessageRequest,
-  WhatsAppTemplate,
-  WhatsAppTemplatesResponse,
-  ApiResponse,
-} from './whatsapp-types';
+import { sendMessage, sendTemplateMessage } from './whatsapp';
+import { SendMessageRequest, SendTemplateMessageRequest, ApiResponse } from './whatsapp-types';
 
 import { LanguagesEnum } from 'whatsapp/build/types/enums';
+
+// Helper function to fill template parameters with contact data
+const fillTemplateParameters = (
+  contact: Record<string, unknown>,
+  parameterMapping: string[],
+): Record<string, string> => {
+  const params: Record<string, string> = {};
+
+  parameterMapping.forEach((fieldName, index) => {
+    const paramNumber = (index + 1).toString();
+    let value = '';
+
+    if (fieldName && contact[fieldName] !== undefined && contact[fieldName] !== null) {
+      const fieldValue = contact[fieldName];
+
+      if (typeof fieldValue === 'boolean') {
+        value = fieldValue ? 'Yes' : 'No';
+      } else if (typeof fieldValue === 'string' || typeof fieldValue === 'number') {
+        value = fieldValue.toString();
+      } else {
+        // For complex objects, try JSON.stringify or fallback to empty string
+        try {
+          value = JSON.stringify(fieldValue);
+        } catch {
+          value = '';
+        }
+      }
+    }
+
+    params[paramNumber] = value;
+  });
+
+  return params;
+};
 
 const router = Router();
 
@@ -58,93 +86,193 @@ router.post('/send', async (req: Request, res: Response) => {
   }
 });
 
-// Send template message endpoint
-router.post('/template', async (req: Request, res: Response) => {
+// Send template messages to multiple contacts by ID
+router.post('/send_template_message', async (req: Request, res: Response) => {
   try {
-    console.log('=== Template endpoint called ===');
-    const body = req.body as SendTemplateMessageRequest;
-    const to = Number(body.to);
-    const templateName = body.template || 'hello_world';
-    const language = (body.language || 'en_US') as LanguagesEnum;
+    console.log('=== Bulk template endpoint called ===');
+    const body = req.body as {
+      contactIds: string[];
+      template?: string;
+      language?: string;
+      params?: Record<string, string>;
+      fields?: string[]; // Optional additional fields to include in response
+      parameterMapping?: string[]; // Ordered list of contact field names for template parameters
+    };
+
+    const {
+      contactIds,
+      template: templateName = 'hello_world',
+      language = 'en_US',
+      params = {},
+      parameterMapping = [], // Default to empty array
+      // fields parameter available for potential future use
+    } = body;
 
     // Validate required fields
-    if (!body.to) {
-      console.log('❌ Missing required field: to');
+    if (!contactIds || !Array.isArray(contactIds) || contactIds.length === 0) {
+      console.log('❌ Missing required field: contactIds');
       return res.status(400).json({
         success: false,
-        error: 'Missing required field: to',
+        error: 'Missing required field: contactIds (array)',
         timestamp: new Date().toISOString(),
       } as ApiResponse);
     }
 
-    if (isNaN(to)) {
-      console.log('❌ Invalid phone number format:', body.to);
-      return res.status(400).json({
+    // Import contacts functions
+    const { getContactsByIds } = await import('../contacts/contact-endpoints');
+
+    // Find contacts by IDs (full contact data for phone numbers)
+    const fullContactsToMessage = getContactsByIds(contactIds);
+
+    if (fullContactsToMessage.length === 0) {
+      return res.status(404).json({
         success: false,
-        error: 'Invalid phone number format',
+        error: 'No valid contacts found for the provided IDs',
         timestamp: new Date().toISOString(),
       } as ApiResponse);
     }
 
-    // Use provided parameters or defaults for template
-    const params: Record<string, string> = body.params || {};
+    console.log(
+      `📱 Sending template "${templateName}" to ${fullContactsToMessage.length} contacts`,
+    );
 
-    const result = await sendTemplateMessage(to, templateName, language, params);
-
-    if (result.success) {
-      res.status(200).json({
-        success: true,
-        data: result.data,
-        timestamp: new Date().toISOString(),
-      } as ApiResponse);
-    } else {
-      console.error('❌ Error sending template message:', result.data);
-      res.status(400).json({
-        success: false,
-        error: result.data?.message || 'Failed to send template message',
-        details: result.data?.error_data ? JSON.stringify(result.data.error_data) : 'Unknown error',
-        timestamp: new Date().toISOString(),
-      } as ApiResponse);
+    // Define the result type for template message sending
+    interface TemplateMessageResult {
+      contactId: string;
+      contactName: string;
+      phoneNumber: string;
+      success: boolean;
+      result: unknown;
     }
+
+    // Send template messages to all contacts
+    const results = await Promise.allSettled(
+      fullContactsToMessage.map(async (contact): Promise<TemplateMessageResult> => {
+        const phoneNumber = Number(contact.phone_number.replace(/\D/g, ''));
+        if (isNaN(phoneNumber)) {
+          throw new Error(
+            `Invalid phone number for contact ${contact.id}: ${contact.phone_number}`,
+          );
+        }
+
+        // Fill template parameters with contact data if parameterMapping is provided
+        let finalParams = { ...params };
+        if (parameterMapping && parameterMapping.length > 0) {
+          const contactParams = fillTemplateParameters(
+            contact as unknown as Record<string, unknown>,
+            parameterMapping,
+          );
+          finalParams = { ...finalParams, ...contactParams };
+        }
+
+        console.log(
+          `Sending to ${contact.first_name} ${contact.last_name} with params:`,
+          finalParams,
+        );
+
+        const result = await sendTemplateMessage(
+          phoneNumber,
+          templateName,
+          language as LanguagesEnum,
+          finalParams,
+        );
+        return {
+          contactId: contact.id,
+          contactName: `${contact.first_name} ${contact.last_name}`,
+          phoneNumber: contact.phone_number,
+          success: result.success,
+          result: result.data,
+        };
+      }),
+    );
+
+    // Separate successful and failed sends
+    const successful = results
+      .filter(
+        (result): result is PromiseFulfilledResult<TemplateMessageResult> =>
+          result.status === 'fulfilled',
+      )
+      .map((result) => result.value);
+
+    const failed = results
+      .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
+      .map((result) => ({
+        error: result.reason instanceof Error ? result.reason.message : 'Unknown error',
+      }));
+
+    console.log(`✅ Successfully sent to ${successful.filter((r) => r.success).length} contacts`);
+    console.log(
+      `❌ Failed to send to ${failed.length + successful.filter((r) => !r.success).length} contacts`,
+    );
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalRequested: contactIds.length,
+        totalFound: fullContactsToMessage.length,
+        totalSent: successful.filter((r) => r.success).length,
+        totalFailed: failed.length + successful.filter((r) => !r.success).length,
+        results: successful,
+        errors: failed,
+      },
+      timestamp: new Date().toISOString(),
+    } as ApiResponse);
   } catch (error) {
-    console.error('❌ Error in template endpoint:', error);
+    console.error('❌ Error in bulk template endpoint:', error);
     console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     res.status(500).json({
       success: false,
-      error: 'Failed to send template message',
+      error: 'Failed to send bulk template messages',
       details: error instanceof Error ? error.message : 'Unknown error',
       timestamp: new Date().toISOString(),
     } as ApiResponse);
   }
 });
 
-// Get all templates endpoint
+// Get all available templates endpoint
 router.get('/templates', async (req: Request, res: Response) => {
   try {
-    console.log('=== Templates endpoint called ===');
+    console.log('=== Get templates endpoint called ===');
 
     console.log('Calling getTemplateMessages...');
-    const rawTemplates = (await getTemplateMessages()) as WhatsAppTemplatesResponse;
+    const { getTemplateMessages } = await import('./whatsapp');
+    const rawTemplates = (await getTemplateMessages()) as {
+      data?: Array<{
+        name?: string;
+        language?: string;
+        status?: string;
+        category?: string;
+        id?: string;
+        components?: Array<{
+          type?: string;
+          text?: string;
+          format?: string;
+          buttons?: unknown;
+          example?: unknown;
+        }>;
+      }>;
+    };
     console.log('✅ getTemplateMessages completed successfully');
 
     // Transform the raw API response into a cleaner format
-    const cleanTemplates: WhatsAppTemplate[] =
+    const cleanTemplates =
       rawTemplates?.data?.map((template) => ({
-        name: template.name,
-        language: template.language,
-        status: template.status,
-        category: template.category,
-        id: template.id,
+        name: template.name || '',
+        language: template.language || '',
+        status: template.status || '',
+        category: template.category || '',
+        id: template.id || '',
         // Include components for detailed view if needed
-        components: template.components
-          ?.map((comp) => ({
-            type: comp.type,
-            text: comp.text,
-            format: comp.format,
-            buttons: comp.buttons,
-            example: comp.example,
-          }))
-          .filter((comp) => comp.text || comp.buttons), // Only include meaningful components
+        components:
+          template.components
+            ?.map((comp) => ({
+              type: comp.type || '',
+              text: comp.text || '',
+              format: comp.format || '',
+              buttons: comp.buttons,
+              example: comp.example,
+            }))
+            .filter((comp) => comp.text || comp.buttons) || [], // Only include meaningful components
       })) || [];
 
     res.status(200).json({
@@ -152,11 +280,16 @@ router.get('/templates', async (req: Request, res: Response) => {
       templates: cleanTemplates,
       total: cleanTemplates.length,
       timestamp: new Date().toISOString(),
+      // Include Facebook Business Manager configuration
+      facebookConfig: {
+        businessId: '794684380935055',
+        assetId: '1291982606049724',
+      },
       // Include raw data option via query parameter
       ...(req.query.raw === 'true' && { raw_data: rawTemplates }),
     });
   } catch (error) {
-    console.error('❌ Error in templates endpoint:', error);
+    console.error('❌ Error in get templates endpoint:', error);
     console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     res.status(500).json({
       success: false,

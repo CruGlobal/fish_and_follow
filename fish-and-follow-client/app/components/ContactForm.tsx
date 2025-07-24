@@ -2,21 +2,29 @@ import { useState } from "react";
 import SubmitConfirmation from "./SubmitConfirmation";
 
 interface ContactFormData {
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
+  phone_number: string;
   email: string;
-  phone: string;
-  company?: string;
-  message?: string;
+  campus: string;
+  major: string;
+  year: "freshman" | "sophomore" | "junior" | "senior" | "graduate";
+  is_interested: boolean;
+  gender: "male" | "female" | "non-binary" | "prefer-not-to-say";
+  follow_up_status: number;
 }
 
 const initialFormData: ContactFormData = {
-  firstName: "",
-  lastName: "",
+  first_name: "",
+  last_name: "",
+  phone_number: "",
   email: "",
-  phone: "",
-  company: "",
-  message: "",
+  campus: "",
+  major: "",
+  year: "freshman",
+  is_interested: false,
+  gender: "prefer-not-to-say",
+  follow_up_status: 1,
 };
 
 export function ContactForm() {
@@ -52,10 +60,14 @@ export function ContactForm() {
   };
 
   if (submitted) {
-    return (<SubmitConfirmation onClose={() => {
-      setSubmitted(false);
-      setFormData(initialFormData);
-    }}/>);
+    return (
+      <SubmitConfirmation
+        onClose={() => {
+          setSubmitted(false);
+          setFormData(initialFormData);
+        }}
+      />
+    );
   }
 
   return (
@@ -72,9 +84,9 @@ export function ContactForm() {
             <input
               type="text"
               id="firstName"
-              name="firstName"
+              name="first_name"
               required
-              value={formData.firstName}
+              value={formData.first_name}
               onChange={handleInputChange}
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900 bg-white px-3 py-2"
             />
@@ -89,9 +101,9 @@ export function ContactForm() {
             <input
               type="text"
               id="lastName"
-              name="lastName"
+              name="last_name"
               required
-              value={formData.lastName}
+              value={formData.last_name}
               onChange={handleInputChange}
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900 bg-white px-3 py-2"
             />
@@ -126,9 +138,9 @@ export function ContactForm() {
           <input
             type="tel"
             id="phone"
-            name="phone"
+            name="phone_number"
             required
-            value={formData.phone}
+            value={formData.phone_number}
             onChange={handleInputChange}
             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900 bg-white px-3 py-2"
           />

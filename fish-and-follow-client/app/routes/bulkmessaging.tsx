@@ -2,24 +2,20 @@ import React, { useEffect, useState, useCallback } from 'react'
 import DebouncedPaginatedSearch from '~/components/DebouncedPaginatedSearch'
 import SelectedContactsBadges from '~/components/SelectedContactsBadges'
 import TemplateSelector from '~/components/TemplateSelector';
-import { apiService, type Contact } from '~/lib/api';
+import { apiService, type ContactSummary } from '~/lib/api';
+import { Card, CardContent } from '~/components/ui/card';
+import { ErrorAlert } from '~/components/ui/ErrorAlert';
 
-// Updated interface to match Contact from API
+// Updated interface to match ContactSummary from API
 interface ContactItem {
-  name: string;  // Full name (firstName + lastName)
+  name: string;  // Full name (first_name + last_name)
   key: string;   // Contact ID
-  email: string;
-  phone: string;
-  company?: string;
 }
 
-// Helper function to convert Contact to ContactItem
-const contactToItem = (contact: Contact): ContactItem => ({
-  name: `${contact.firstName} ${contact.lastName}`,
+// Helper function to convert ContactSummary to ContactItem
+const contactToItem = (contact: ContactSummary): ContactItem => ({
+  name: `${contact.first_name} ${contact.last_name}`,
   key: contact.id,
-  email: contact.email,
-  phone: contact.phone,
-  company: contact.company,
 });
 
 export default function BulkMessaging() {
@@ -97,11 +93,7 @@ export default function BulkMessaging() {
         <p className="text-gray-600">Search and select contacts for bulk messaging</p>
       </div>
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-          {error}
-        </div>
-      )}
+      {error && <ErrorAlert message={error} className="mb-4" />}
 
       <div className="mb-4">
         <SelectedContactsBadges
@@ -120,7 +112,15 @@ export default function BulkMessaging() {
         />
       </div>
       
-      <TemplateSelector />
+      {selectedContacts.length === 0 ? (
+        <Card>
+          <CardContent className="text-center py-8 text-gray-500">
+            <p>Please select contacts above to send template messages.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <TemplateSelector selectedContacts={selectedContacts} />
+      )}
     </main>
   )
 }

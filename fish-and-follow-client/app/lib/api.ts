@@ -1,12 +1,22 @@
 // API service for handling HTTP requests
 
 interface ContactFormData {
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
+  phone_number: string;
   email: string;
-  phone: string;
-  company?: string;
-  message?: string;
+  campus: string;
+  major: string;
+  year: 'freshman' | 'sophomore' | 'junior' | 'senior' | 'graduate';
+  is_interested: boolean;
+  gender: 'male' | 'female' | 'non-binary' | 'prefer-not-to-say';
+  follow_up_status: number;
+}
+
+interface ContactSummary {
+  id: string;
+  first_name: string;
+  last_name: string;
 }
 
 interface Contact extends ContactFormData {
@@ -25,19 +35,35 @@ interface User {
   createdAt: string;
 }
 
+interface ContactSearchResult {
+  contact: ContactSummary | Contact; // Can be either summary or full contact
+  score: number;
+  matchedFields: string[];
+  fieldScores: Record<string, number>;
+}
+
 interface ContactSearchResponse {
-  contacts: Contact[];
-  total: number;
-  searchQuery: string | null;
+  success: boolean;
+  results: ContactSearchResult[];
+  query: string | null;
   fuzzySearch: boolean;
   threshold: number;
+  total: number;
+  totalContacts: number;
   timestamp: string;
 }
 
 interface TemplateComponent {
-  type: "HEADER" | "BODY" | "FOOTER";
-  text: string;
-  format?: "TEXT";
+  type: "HEADER" | "BODY" | "FOOTER" | "BUTTONS";
+  text?: string;
+  format?: "TEXT" | "MEDIA";
+  buttons?: Array<{
+    type?: string;
+    text?: string;
+    url?: string;
+    phone_number?: string;
+  }>;
+  example?: unknown;
 }
 
 interface TemplateItem {
@@ -49,11 +75,51 @@ interface TemplateItem {
   components: TemplateComponent[];
 }
 
+interface FacebookConfig {
+  businessId: string;
+  assetId: string;
+}
+
 interface Template {
   success: boolean
   templates: TemplateItem[];
   timestamp: string;
   total: number;
+  facebookConfig: FacebookConfig;
+}
+
+interface BulkTemplateMessageRequest {
+  contactIds: string[];
+  template?: string;
+  language?: string;
+  params?: Record<string, string>;
+  fields?: string[];
+  parameterMapping?: string[]; // Ordered list of contact field names for template parameters
+}
+
+interface BulkTemplateMessageResponse {
+  success: boolean;
+  data: {
+    totalRequested: number;
+    totalFound: number;
+    totalSent: number;
+    totalFailed: number;
+    results: any[];
+    errors: any[];
+  };
+  timestamp: string;
+}
+
+interface ContactField {
+  key: string;
+  label: string;
+  type: string;
+}
+
+interface ContactFieldsResponse {
+  success: boolean;
+  fields: ContactField[];
+  timestamp: string;
 }
 
 class ApiService {
@@ -101,13 +167,37 @@ class ApiService {
     });
   }
 
-  async getContacts(search?: string): Promise<Contact[]> {
-    const searchParam = search ? `?search=${encodeURIComponent(search)}` : '';
-    const response = await this.request<ContactSearchResponse>(`/contacts${searchParam}`);
-    return response.contacts;
+  async getContacts(search?: string, fields?: string[]): Promise<ContactSummary[]> {
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (fields && fields.length > 0) params.append('fields', fields.join(','));
+    
+    const queryString = params.toString();
+    const endpoint = `/contacts${queryString ? `?${queryString}` : ''}`;
+    
+    const response = await this.request<ContactSearchResponse>(endpoint);
+    return response.results.map(result => result.contact as ContactSummary);
   }
 
-  async searchContacts(query: string): Promise<Contact[]> {
+  async getFullContacts(search?: string): Promise<Contact[]> {
+    const allFields = [
+      'id', 'first_name', 'last_name', 'phone_number', 'email', 
+      'campus', 'major', 'year', 'is_interested', 'gender', 
+      'follow_up_status', 'createdAt', 'updatedAt'
+    ];
+    
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    params.append('fields', allFields.join(','));
+    
+    const queryString = params.toString();
+    const endpoint = `/contacts${queryString ? `?${queryString}` : ''}`;
+    
+    const response = await this.request<ContactSearchResponse>(endpoint);
+    return response.results.map(result => result.contact as Contact);
+  }
+
+  async searchContacts(query: string): Promise<ContactSummary[]> {
     return this.getContacts(query);
   }
 
@@ -166,10 +256,31 @@ class ApiService {
     return this.request<Template>("/whatsapp/templates");
   }
 
-  async getTemplate(name: string): Promise<TemplateItem> {
-    return this.request<TemplateItem>(`/whatsapp/templates/${name}`);
+  // WhatsApp endpoints
+  async sendBulkTemplateMessage(data: BulkTemplateMessageRequest): Promise<BulkTemplateMessageResponse> {
+    return this.request<BulkTemplateMessageResponse>("/whatsapp/send_template_message", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getContactFields(): Promise<ContactField[]> {
+    const response = await this.request<ContactFieldsResponse>("/contacts/fields");
+    return response.fields;
   }
 }
 
 export const apiService = new ApiService();
-export type { Contact, User, ContactFormData, Template, TemplateItem, TemplateComponent };
+export type { 
+  Contact, 
+  ContactSummary, 
+  User, 
+  ContactFormData, 
+  Template, 
+  TemplateItem, 
+  TemplateComponent,
+  BulkTemplateMessageRequest,
+  BulkTemplateMessageResponse,
+  ContactField,
+  ContactFieldsResponse 
+};

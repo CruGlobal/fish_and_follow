@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { apiService } from '~/lib/api'
-import type { TemplateItem, TemplateComponent } from '~/lib/api'
+import type { TemplateItem, TemplateComponent, BulkTemplateMessageRequest, BulkTemplateMessageResponse } from '~/lib/api'
+import TemplateParameterMapper from './TemplateParameterMapper'
 
 import {
   Select,
@@ -11,15 +12,33 @@ import {
   SelectValue,
 } from "./ui/select"
 import { Button } from './ui/button'
+import { Card, CardContent } from './ui/card'
+import { LoadingState } from './ui/LoadingState'
+import { ErrorAlert } from './ui/ErrorAlert'
+import { TemplateInfoCard } from './ui/TemplateInfoCard'
+import { TemplatePreview } from './ui/TemplatePreview'
+import { SuccessMessage } from './ui/SuccessMessage'
 
+interface ContactItem {
+  name: string;
+  key: string;
+}
 
-function TemplateSelector() {
+interface TemplateSelectorProps {
+  selectedContacts?: ContactItem[];
+}
+
+function TemplateSelector({ selectedContacts = [] }: TemplateSelectorProps) {
   const [templates, setTemplates] = useState<TemplateItem[]>([])
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateItem | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [sendResult, setSendResult] = useState<BulkTemplateMessageResponse | null>(null)
+  const [parameterMapping, setParameterMapping] = useState<string[]>([])
+  const [templateBodyText, setTemplateBodyText] = useState('')
+  const [facebookConfig, setFacebookConfig] = useState<{businessId: string; assetId: string} | null>(null)
 
   useEffect(() => {
     const fetchTemplates = async () => {
@@ -30,6 +49,10 @@ function TemplateSelector() {
         // Handle the nested structure: response.templates
         const templatesData = response?.templates || []
         setTemplates(templatesData)
+        // Store facebook config from response
+        if (response?.facebookConfig) {
+          setFacebookConfig(response.facebookConfig)
+        }
       } catch (err) {
         console.error("Failed to fetch templates:", err)
         setError("Failed to load templates")
@@ -45,6 +68,17 @@ function TemplateSelector() {
     console.log("Selected template:", templateName)
     const template = templates.find(t => t.name === templateName)
     setSelectedTemplate(template || null)
+    
+    // Extract body text for parameter mapping
+    if (template) {
+      const bodyComponent = template.components.find(c => c.type === 'BODY')
+      setTemplateBodyText(bodyComponent?.text || '')
+    } else {
+      setTemplateBodyText('')
+    }
+    
+    // Reset parameter mapping when template changes
+    setParameterMapping([])
   }
 
   const handleSendMessage = async () => {
@@ -52,16 +86,38 @@ function TemplateSelector() {
       console.error("No template selected")
       return
     }
+
+    if (selectedContacts.length === 0) {
+      console.error("No contacts selected")
+      setError("Please select at least one contact before sending the message")
+      return
+    }
     
     setIsSubmitting(true)
+    setError(null)
+    
     try {
-      // Simulate API call - replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      console.log("Sending message with template:", selectedTemplate)
+      const contactIds = selectedContacts.map(contact => contact.key)
+      
+      const request: BulkTemplateMessageRequest = {
+        contactIds,
+        template: selectedTemplate.name,
+        language: selectedTemplate.language,
+        // Only request minimal fields since we're just sending messages
+        fields: ['id', 'first_name', 'last_name'],
+        // Include parameter mapping if configured
+        parameterMapping: parameterMapping.filter(field => field !== ''), // Remove empty mappings
+      }
+
+      console.log("Sending bulk template message:", request)
+      const result = await apiService.sendBulkTemplateMessage(request)
+      console.log("Send result:", result)
+      
+      setSendResult(result)
       setIsSubmitted(true)
     } catch (err) {
       console.error("Failed to send message:", err)
-      // Handle error - could show error message here
+      setError("Failed to send template message. Please try again.")
     } finally {
       setIsSubmitting(false)
     }
@@ -70,39 +126,34 @@ function TemplateSelector() {
   const handleSendAnother = () => {
     setIsSubmitted(false)
     setSelectedTemplate(null)
+    setSendResult(null)
+    setError(null)
+    setParameterMapping([])
+    setTemplateBodyText('')
   }
 
   if (loading) {
-    return (
-      <div className="py-4">
-        <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="h-10 bg-gray-200 rounded mb-4"></div>
-          <div className="h-32 bg-gray-200 rounded"></div>
-        </div>  
-      </div>
-    )
+    return <LoadingState />
   }
 
   if (error) {
-    return (
-      <div className="py-4">
-        <div className="bg-red-50 border border-red-200 rounded-md p-4">
-          <div className="text-red-800 text-sm">{error}</div>
-        </div>
-      </div>
-    )
+    return <ErrorAlert message={error} className="py-4" />
   }
 
   return (
     <div className="py-4">
       <div className='pb-4'>
         <label htmlFor="template-select" className="block text-sm font-medium text-gray-700 mb-2">
-          Select Email Template
+          Select WhatsApp Template
         </label>
+        {selectedContacts.length > 0 && (
+          <p className="text-sm text-gray-600 mb-2">
+            Will send to {selectedContacts.length} selected contact{selectedContacts.length !== 1 ? 's' : ''}
+          </p>
+        )}
         <Select value={selectedTemplate?.name || ''} onValueChange={handleTemplateSelect}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Theme" />
+            <SelectValue placeholder="Select Template" />
           </SelectTrigger>
           <SelectContent id="template-select">
             {templates.map((template) => (
@@ -115,92 +166,51 @@ function TemplateSelector() {
       </div>
 
       {selectedTemplate && !isSubmitted && (
-        <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">WhatsApp Template Preview</h3>
-          
-          <div className="space-y-4">
-            {/* Template Info */}
-            <div className="bg-white rounded-lg p-4 border border-gray-200 mb-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="space-y-1">
-                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Name</div>
-                  <div className="text-sm font-medium text-gray-900">{selectedTemplate.name}</div>
-                </div>
-                <div className="space-y-1">
-                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Language</div>
-                  <div className="text-sm text-gray-900">{selectedTemplate.language}</div>
-                </div>
-                <div className="space-y-1">
-                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Category</div>
-                  <div className="text-sm text-gray-900">{selectedTemplate.category}</div>
-                </div>
-                <div className="space-y-1">
-                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Status</div>
-                  <div>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      selectedTemplate.status === 'APPROVED' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {selectedTemplate.status}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
+        <Card className="bg-gray-50">
+          <CardContent className="p-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">WhatsApp Template Preview</h3>
+            
+            <div className="space-y-4">
+              {/* Template Info */}
+              <TemplateInfoCard template={selectedTemplate} />
 
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
-              <h4 className="text-sm font-semibold text-blue-900 mb-2">Template Preview:</h4>
-              <div className="space-y-2">
-                {selectedTemplate.components.map((component: TemplateComponent, index: number) => (
-                  <div key={index} className={`text-sm ${
-                    component.type === 'HEADER' ? 'font-semibold text-blue-900' :
-                    component.type === 'BODY' ? 'text-gray-800' :
-                    'text-gray-600 text-xs'
-                  }`}>
-                    {component.text}
-                  </div>
-                ))}
-              </div>
+              {/* Template Preview */}
+              <TemplatePreview 
+                components={selectedTemplate.components} 
+                facebookConfig={facebookConfig || undefined}
+              />
+
+              {/* Template Parameter Mapping */}
+              {templateBodyText && (
+                <TemplateParameterMapper
+                  templateText={templateBodyText}
+                  onParameterMappingChange={setParameterMapping}
+                />
+              )}
             </div>
-          </div>
-          <div className="flex justify-center mt-6">
-            <Button 
-              className="w-48" 
-              onClick={handleSendMessage}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Sending..." : "Send Message"}
-            </Button>
-          </div>
-        </div>
+            
+            <div className="flex justify-center mt-6">
+              <Button 
+                className="w-48" 
+                onClick={handleSendMessage}
+                disabled={isSubmitting || selectedContacts.length === 0}
+              >
+                {isSubmitting ? "Sending..." : `Send to ${selectedContacts.length} Contact${selectedContacts.length !== 1 ? 's' : ''}`}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Success Message */}
-      {isSubmitted && (
-        <div className="border border-green-200 rounded-lg p-6 bg-green-50">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-green-900 mb-2">Message Sent Successfully!</h3>
-            <p className="text-green-700 mb-6">
-              Your WhatsApp template "{selectedTemplate?.name}" has been sent successfully to the selected contacts.
-            </p>
-            <div className="flex justify-center gap-3">
-              <Button onClick={handleSendAnother} className="bg-green-600 hover:bg-green-700">
-                Send Another Template
-              </Button>
-              <Button variant="outline" asChild className="border-green-300 text-green-700 hover:bg-green-100">
-                <Link to="/contacts">
-                  Back to Contacts
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </div>
+      {isSubmitted && sendResult && (
+        <SuccessMessage
+          title="Bulk Message Sent!"
+          message={`WhatsApp template "${selectedTemplate?.name}" sent to selected contacts.`}
+          results={sendResult.data}
+          onSendAnother={handleSendAnother}
+          onBackToContacts={() => window.location.href = '/contacts'}
+        />
       )}
     </div>
   )

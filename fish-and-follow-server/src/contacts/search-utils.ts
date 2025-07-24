@@ -5,15 +5,24 @@
 // Contact interface for search operations
 export interface Contact {
   id: string;
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
+  phone_number: string;
   email: string;
-  phone: string;
-  company?: string;
-  message?: string;
+  campus: string;
+  major: string;
+  year: 'freshman' | 'sophomore' | 'junior' | 'senior' | 'graduate';
+  is_interested: boolean;
+  gender: 'male' | 'female' | 'non-binary' | 'prefer-not-to-say';
+  follow_up_status: number;
   createdAt: string;
   updatedAt: string;
 }
+
+// Helper function to get full name from contact
+export const getContactName = (contact: Contact): string => {
+  return `${contact.first_name} ${contact.last_name}`;
+};
 
 // Search result interface with scoring details
 export interface SearchResult {
@@ -104,12 +113,15 @@ export const searchContactsWithFuzzy = (
 
   contactList.forEach((contact) => {
     const searchableFields = [
-      { field: 'firstName', value: contact.firstName },
-      { field: 'lastName', value: contact.lastName },
+      { field: 'name', value: getContactName(contact) },
+      { field: 'first_name', value: contact.first_name },
+      { field: 'last_name', value: contact.last_name },
       { field: 'email', value: contact.email },
-      { field: 'phone', value: contact.phone },
-      { field: 'company', value: contact.company || '' },
-      { field: 'message', value: contact.message || '' },
+      { field: 'phone_number', value: contact.phone_number },
+      { field: 'campus', value: contact.campus },
+      { field: 'major', value: contact.major },
+      { field: 'year', value: contact.year },
+      { field: 'gender', value: contact.gender },
     ];
 
     let bestScore = 0;
@@ -187,12 +199,15 @@ export const advancedSearchContacts = (
 
   contactList.forEach((contact) => {
     const searchableFields: SearchField[] = [
-      { field: 'firstName', value: contact.firstName, weight: 1.0 },
-      { field: 'lastName', value: contact.lastName, weight: 1.0 },
+      { field: 'name', value: getContactName(contact), weight: 1.2 },
+      { field: 'first_name', value: contact.first_name, weight: 1.0 },
+      { field: 'last_name', value: contact.last_name, weight: 1.0 },
       { field: 'email', value: contact.email, weight: 0.9 },
-      { field: 'phone', value: contact.phone, weight: 0.8 },
-      { field: 'company', value: contact.company || '', weight: 0.7 },
-      { field: 'message', value: contact.message || '', weight: 0.5 },
+      { field: 'phone_number', value: contact.phone_number, weight: 0.8 },
+      { field: 'campus', value: contact.campus, weight: 0.7 },
+      { field: 'major', value: contact.major, weight: 0.8 },
+      { field: 'year', value: contact.year, weight: 0.6 },
+      { field: 'gender', value: contact.gender, weight: 0.5 },
     ];
 
     let bestScore = 0;
@@ -203,9 +218,22 @@ export const advancedSearchContacts = (
       const fieldValue = value.toLowerCase();
       let fieldScore = 0;
 
-      // Exact substring match
-      if (fieldValue.includes(searchTerm)) {
-        fieldScore = 1.0 * weight;
+      // Check for exact prefix match (highest priority)
+      if (fieldValue.startsWith(searchTerm)) {
+        fieldScore = 1.2 * weight; // Boost score for prefix matches
+      }
+      // Check for exact substring match
+      else if (fieldValue.includes(searchTerm)) {
+        // Check if it's a word boundary match for better scoring
+        const wordBoundaryRegex = new RegExp(
+          `\\b${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`,
+          'i',
+        );
+        if (wordBoundaryRegex.test(fieldValue)) {
+          fieldScore = 1.1 * weight; // Boost for word boundary matches
+        } else {
+          fieldScore = 1.0 * weight; // Regular substring match
+        }
       } else {
         // Fuzzy matching for individual words
         const words = fieldValue.split(/\s+/).filter((word) => word.length > 0);
@@ -214,9 +242,14 @@ export const advancedSearchContacts = (
         let wordScore = 0;
         queryWords.forEach((queryWord) => {
           words.forEach((word) => {
-            const similarity = calculateSimilarity(queryWord, word);
-            if (similarity >= threshold) {
-              wordScore = Math.max(wordScore, similarity);
+            // Check for prefix match in individual words
+            if (word.startsWith(queryWord)) {
+              wordScore = Math.max(wordScore, 1.1); // Boost for word prefix matches
+            } else {
+              const similarity = calculateSimilarity(queryWord, word);
+              if (similarity >= threshold) {
+                wordScore = Math.max(wordScore, similarity);
+              }
             }
           });
         });
@@ -249,8 +282,20 @@ export const advancedSearchContacts = (
     }
   });
 
-  // Sort by score and limit results
-  return searchResults.sort((a, b) => b.score - a.score).slice(0, maxResults);
+  // Sort by score with prefix matches prioritized, then by score, then limit results
+  return searchResults
+    .sort((a, b) => {
+      // First, prioritize contacts with prefix matches
+      const aHasPrefix = hasAnyPrefixMatch(a.contact, query);
+      const bHasPrefix = hasAnyPrefixMatch(b.contact, query);
+      
+      if (aHasPrefix && !bHasPrefix) return -1;
+      if (!aHasPrefix && bHasPrefix) return 1;
+      
+      // Then sort by score (descending)
+      return b.score - a.score;
+    })
+    .slice(0, maxResults);
 };
 
 /**
@@ -261,4 +306,31 @@ export const advancedSearchContacts = (
  */
 export const searchContacts = (contactList: Contact[], query: string): Contact[] => {
   return searchContactsWithFuzzy(contactList, query, 0.6);
+};
+
+/**
+ * Check if contact has any fields that start with the search query
+ * @param contact Contact to check
+ * @param query Search query
+ * @returns Boolean indicating if any field starts with the query
+ */
+const hasAnyPrefixMatch = (contact: Contact, query: string): boolean => {
+  const searchTerm = query.toLowerCase().trim();
+  const searchableValues = [
+    getContactName(contact),
+    contact.first_name,
+    contact.last_name,
+    contact.email,
+    contact.campus,
+    contact.major,
+  ];
+
+  return searchableValues.some(
+    (value) =>
+      value.toLowerCase().startsWith(searchTerm) ||
+      value
+        .toLowerCase()
+        .split(/\s+/)
+        .some((word) => word.startsWith(searchTerm)),
+  );
 };

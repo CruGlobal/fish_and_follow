@@ -50,6 +50,15 @@ export interface SendTemplateMessageRequest {
   params?: Record<string, string>;
 }
 
+export interface BulkTemplateMessageRequest {
+  contactIds: string[];
+  template?: string;
+  language?: string;
+  params?: Record<string, string>;
+  fields?: string[]; // Optional additional fields to include in response
+  parameterMapping?: string[]; // Ordered list of contact field names for template parameters
+}
+
 export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;

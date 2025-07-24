@@ -1,28 +1,28 @@
 // API service for handling HTTP requests
 
 interface ContactFormData {
-  first_name: string;
-  last_name: string;
-  phone_number: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
   email: string;
   campus: string;
   major: string;
-  year: 'freshman' | 'sophomore' | 'junior' | 'senior' | 'graduate';
-  is_interested: boolean;
-  gender: 'male' | 'female' | 'non-binary' | 'prefer-not-to-say';
-  follow_up_status: number;
+  year: '1st_year' | '2nd_year' | '3rd_year' | '4th_year' | '5th_year' | '6th_year' | '7th_year' | '8th_year' | '9th_year' | '10th_year' | '11th_year';
+  isInterested: boolean;
+  gender: 'male' | 'female';
+  followUpStatusNumber: number | null;
 }
 
 interface ContactSummary {
   id: string;
-  first_name: string;
-  last_name: string;
+  firstName: string;
+  lastName: string;
 }
 
 interface Contact extends ContactFormData {
   id: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface User {
@@ -35,16 +35,9 @@ interface User {
   createdAt: string;
 }
 
-interface ContactSearchResult {
-  contact: ContactSummary | Contact; // Can be either summary or full contact
-  score: number;
-  matchedFields: string[];
-  fieldScores: Record<string, number>;
-}
-
 interface ContactSearchResponse {
   success: boolean;
-  results: ContactSearchResult[];
+  contacts: ContactSummary[];
   query: string | null;
   fuzzySearch: boolean;
   threshold: number;
@@ -173,17 +166,26 @@ class ApiService {
     if (fields && fields.length > 0) params.append('fields', fields.join(','));
     
     const queryString = params.toString();
-    const endpoint = `/contacts${queryString ? `?${queryString}` : ''}`;
+    const endpoint = `/contacts/search${queryString ? `?${queryString}` : ''}`;
     
-    const response = await this.request<ContactSearchResponse>(endpoint);
-    return response.results.map(result => result.contact as ContactSummary);
+    try {
+      const response = await this.request<ContactSearchResponse>(endpoint);
+      // Handle case where response.contacts is undefined or null
+      if (!response.contacts || !Array.isArray(response.contacts)) {
+        return [];
+      }
+      return response.contacts;
+    } catch (error) {
+      console.error('Error fetching contacts:', error);
+      return []; // Return empty array on error
+    }
   }
 
   async getFullContacts(search?: string): Promise<Contact[]> {
     const allFields = [
-      'id', 'first_name', 'last_name', 'phone_number', 'email', 
-      'campus', 'major', 'year', 'is_interested', 'gender', 
-      'follow_up_status', 'createdAt', 'updatedAt'
+      'id', 'firstName', 'lastName', 'phoneNumber', 'email', 
+      'campus', 'major', 'year', 'isInterested', 'gender', 
+      'followUpStatusNumber', 'createdAt', 'updatedAt'
     ];
     
     const params = new URLSearchParams();
@@ -191,14 +193,28 @@ class ApiService {
     params.append('fields', allFields.join(','));
     
     const queryString = params.toString();
-    const endpoint = `/contacts${queryString ? `?${queryString}` : ''}`;
+    const endpoint = `/contacts/search${queryString ? `?${queryString}` : ''}`;
     
-    const response = await this.request<ContactSearchResponse>(endpoint);
-    return response.results.map(result => result.contact as Contact);
+    try {
+      const response = await this.request<ContactSearchResponse>(endpoint);
+      // Handle case where response.contacts is undefined or null
+      if (!response.contacts || !Array.isArray(response.contacts)) {
+        return [];
+      }
+      return response.contacts.map(result => result as Contact);
+    } catch (error) {
+      console.error('Error fetching full contacts:', error);
+      return []; // Return empty array on error
+    }
   }
 
   async searchContacts(query: string): Promise<ContactSummary[]> {
-    return this.getContacts(query);
+    try {
+      return await this.getContacts(query);
+    } catch (error) {
+      console.error('Error searching contacts:', error);
+      return []; // Return empty array on error
+    }
   }
 
   async getContact(id: string): Promise<Contact> {

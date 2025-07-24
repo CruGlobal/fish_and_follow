@@ -12,6 +12,7 @@ import { contactsRouter } from './routes/contacts.router';
 import { followUpStatusRouter } from './routes/followUpStatus.router';
 import { rolesRouter } from './routes/roles.router';
 import { usersRouter } from './routes/users.router';
+import whatsappRouter from './whatsapp-api/whatsapp-endpoints';
 
 dotenv.config();
 
@@ -147,6 +148,7 @@ protectedRouter.use('/users', usersRouter);
 protectedRouter.use('/follow-up-status', followUpStatusRouter);
 protectedRouter.use('/roles', rolesRouter);
 protectedRouter.use('/qr', qrRouter);
+app.use('/whatsapp', whatsappRouter);
 
 // Mount the protected router
 app.use('/api', protectedRouter);

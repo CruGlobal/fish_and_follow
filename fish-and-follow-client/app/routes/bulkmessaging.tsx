@@ -13,10 +13,21 @@ interface ContactItem {
 }
 
 // Helper function to convert ContactSummary to ContactItem
-const contactToItem = (contact: ContactSummary): ContactItem => ({
-  name: `${contact.first_name} ${contact.last_name}`,
-  key: contact.id,
-});
+const contactToItem = (contact: ContactSummary): ContactItem => {
+  console.log('Converting contact:', contact);
+  if (!contact || !contact.id) {
+    console.warn('Invalid contact object:', contact);
+    return {
+      name: 'Unknown Contact',
+      key: 'unknown-' + Math.random(),
+    };
+  }
+  
+  return {
+    name: `${contact.firstName || 'Unknown'} ${contact.lastName || 'Contact'}`,
+    key: contact.id,
+  };
+};
 
 export default function BulkMessaging() {
   const [items, setItems] = useState<ContactItem[]>([]);
@@ -31,11 +42,17 @@ export default function BulkMessaging() {
         setLoading(true);
         setError(null);
         const contacts = await apiService.getContacts();
-        const contactItems = contacts.map(contactToItem);
+        // Handle the case where contacts might be undefined or null
+        const contactItems = (contacts || []).map(contactToItem);
         setItems(contactItems);
+        
+        if (contactItems.length === 0) {
+          console.log('No contacts found in database');
+        }
       } catch (err) {
         console.error('Failed to load contacts:', err);
-        setError('Failed to load contacts');
+        setError('Failed to load contacts. Please try again.');
+        setItems([]); // Ensure items is always an array
       } finally {
         setLoading(false);
       }
@@ -51,13 +68,15 @@ export default function BulkMessaging() {
       console.log("Searching for:", query);
       
       const contacts = await apiService.searchContacts(query);
-      const contactItems = contacts.map(contactToItem);
+      console.log("Search results:", contacts);
+      // Handle the case where contacts might be undefined or null
+      const contactItems = (contacts || []).map(contactToItem);
       console.log("Found contacts:", contactItems);
       setItems(contactItems);
     } catch (err) {
       console.error('Search failed:', err);
-      setError('Search failed');
-      setItems([]); // Clear items on error
+      setError('Search failed. Please try again.');
+      setItems([]); // Ensure items is always an empty array on error
     } finally {
       setLoading(false);
     }
@@ -94,6 +113,31 @@ export default function BulkMessaging() {
       </div>
 
       {error && <ErrorAlert message={error} className="mb-4" />}
+
+      {loading && (
+        <Card className="mb-4">
+          <CardContent className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading contacts...</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {!loading && !error && items.length === 0 && (
+        <Card className="mb-4">
+          <CardContent className="text-center py-8">
+            <div className="text-gray-500">
+              <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No contacts available</h3>
+              <p className="text-gray-600">
+                No contacts were found in the database. Please add some contacts first before attempting bulk messaging.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="mb-4">
         <SelectedContactsBadges

@@ -40,8 +40,8 @@ const mockContacts: Contact[] = [
     is_interested: true,
     gender: "male",
     follow_up_status: 1,
-    createdAt: "2025-01-15T10:30:00Z",
-    updatedAt: "2025-01-15T10:30:00Z",
+    createdAt: "2023-06-15T10:30:00Z",
+    updatedAt: "2023-06-15T10:30:00Z",
   },
   {
     id: "2",
@@ -55,8 +55,8 @@ const mockContacts: Contact[] = [
     is_interested: true,
     gender: "female",
     follow_up_status: 2,
-    createdAt: "2025-01-14T14:20:00Z",
-    updatedAt: "2025-01-14T14:20:00Z",
+    createdAt: "2023-06-15T11:00:00Z",
+    updatedAt: "2023-06-15T11:00:00Z",
   },
 ];
 
@@ -335,13 +335,13 @@ export default function Contacts() {
                     <div>
                       <label className="block text-sm font-medium text-gray-500">Created</label>
                       <p className="mt-1 text-sm text-gray-900">
-                        {formatDate(selectedContact.createdAt)}
+                        {selectedContact.createdAt ? formatDate(selectedContact.createdAt) : 'N/A'}
                       </p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-500">Last Updated</label>
                       <p className="mt-1 text-sm text-gray-900">
-                        {formatDate(selectedContact.updatedAt)}
+                        {selectedContact.updatedAt ? formatDate(selectedContact.updatedAt) : 'N/A'}
                       </p>
                     </div>
                     <div className="pt-4 border-t border-gray-200">

@@ -2,29 +2,29 @@ import { useState } from "react";
 import SubmitConfirmation from "./SubmitConfirmation";
 
 interface ContactFormData {
-  first_name: string;
-  last_name: string;
-  phone_number: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
   email: string;
   campus: string;
   major: string;
-  year: "freshman" | "sophomore" | "junior" | "senior" | "graduate";
-  is_interested: boolean;
-  gender: "male" | "female" | "non-binary" | "prefer-not-to-say";
-  follow_up_status: number;
+  year: '1st_year' | '2nd_year' | '3rd_year' | '4th_year' | '5th_year' | '6th_year' | '7th_year' | '8th_year' | '9th_year' | '10th_year' | '11th_year';
+  isInterested: boolean;
+  gender: 'male' | 'female';
+  followUpStatusNumber: number;
 }
 
 const initialFormData: ContactFormData = {
-  first_name: "",
-  last_name: "",
-  phone_number: "",
+  firstName: "",
+  lastName: "",
+  phoneNumber: "",
   email: "",
   campus: "",
   major: "",
-  year: "freshman",
-  is_interested: false,
-  gender: "prefer-not-to-say",
-  follow_up_status: 1,
+  year: "1st_year",
+  isInterested: false,
+  gender: "male",
+  followUpStatusNumber: 1,
 };
 
 export function ContactForm() {

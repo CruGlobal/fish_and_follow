@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { sendMessage, sendTemplateMessage } from './whatsapp';
-import { SendMessageRequest, SendTemplateMessageRequest, ApiResponse } from './whatsapp-types';
+import { SendMessageRequest, ApiResponse } from './whatsapp-types';
+import { getContactsByIds } from '../contacts/search-utils';
 
 import { LanguagesEnum } from 'whatsapp/build/types/enums';
 
@@ -119,10 +120,9 @@ router.post('/send_template_message', async (req: Request, res: Response) => {
     }
 
     // Import contacts functions
-    const { getContactsByIds } = await import('../contacts/contact-endpoints');
 
     // Find contacts by IDs (full contact data for phone numbers)
-    const fullContactsToMessage = getContactsByIds(contactIds);
+    const fullContactsToMessage = await getContactsByIds(contactIds);
 
     if (fullContactsToMessage.length === 0) {
       return res.status(404).json({
@@ -148,11 +148,9 @@ router.post('/send_template_message', async (req: Request, res: Response) => {
     // Send template messages to all contacts
     const results = await Promise.allSettled(
       fullContactsToMessage.map(async (contact): Promise<TemplateMessageResult> => {
-        const phoneNumber = Number(contact.phone_number.replace(/\D/g, ''));
+        const phoneNumber = Number(contact.phoneNumber.replace(/\D/g, ''));
         if (isNaN(phoneNumber)) {
-          throw new Error(
-            `Invalid phone number for contact ${contact.id}: ${contact.phone_number}`,
-          );
+          throw new Error(`Invalid phone number for contact ${contact.id}: ${contact.phoneNumber}`);
         }
 
         // Fill template parameters with contact data if parameterMapping is provided
@@ -166,7 +164,7 @@ router.post('/send_template_message', async (req: Request, res: Response) => {
         }
 
         console.log(
-          `Sending to ${contact.first_name} ${contact.last_name} with params:`,
+          `Sending to ${contact.firstName} ${contact.lastName} with params:`,
           finalParams,
         );
 
@@ -178,8 +176,8 @@ router.post('/send_template_message', async (req: Request, res: Response) => {
         );
         return {
           contactId: contact.id,
-          contactName: `${contact.first_name} ${contact.last_name}`,
-          phoneNumber: contact.phone_number,
+          contactName: `${contact.firstName} ${contact.lastName}`,
+          phoneNumber: contact.phoneNumber,
           success: result.success,
           result: result.data,
         };

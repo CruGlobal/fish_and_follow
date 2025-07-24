@@ -1,8 +1,9 @@
-import {
-    pgTable, serial, uuid, varchar, boolean, integer,
-    pgEnum, text, timestamp
-} from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
+import {
+    boolean, integer,
+    pgEnum,
+    pgTable, uuid, varchar,
+} from 'drizzle-orm/pg-core';
 
 // Define enums used in the schema:
 export const RoleEnum = pgEnum('role_enum', ['admin', 'user']);

@@ -5,8 +5,16 @@ import * as schema from './schema';
 
 dotenv.config();
 
+const databaseAddress = process.env.DB_PORT_5432_TCP_ADD;
+const databaseName = process.env.DB_ENV_POSTGRESQL_DB;
+const databaseUser = process.env.DB_ENV_POSTGRESQL_USER;
+const databasePassword = process.env.DB_ENV_POSTGRESQL_PASS;
+
+const databaseURL = `postgres://${databaseUser}:${databasePassword}@${databaseAddress}/${databaseName}`;
+
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: databaseURL,
 });
 
 export const db = drizzle(pool, { schema });

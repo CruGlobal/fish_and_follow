@@ -5,8 +5,10 @@ import fs from 'fs';
 import path from 'path';
 import session from 'express-session';
 import passport from 'passport';
+import bodyParser from "body-parser";
 import { Strategy } from 'passport-openidconnect';
 import { requireAuth } from './middleware/auth';
+import { sendSMS } from "./middleware/sendSMS";
 
 dotenv.config();
 
@@ -53,6 +55,7 @@ app.use(cors({
 // Body parsing middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 
 app.use(session({
@@ -151,6 +154,24 @@ app.post('/api/resources', (req, res) => {
   res.status(201).json(newResource);
 });
 
+app.post("/api/send-sms", async (req, res) => {
+  const { to, message } = req.body;
+
+  if (!to || !message) {
+    return res.status(400).json({ error: "Missing 'to' or 'message' in request body" });
+  }
+
+  try {
+  await sendSMS(to, message);
+  res.status(200).json({ success: true, message: "SMS sent!" });
+} catch (error: any) {
+  console.error("SMS sending failed:", error);
+  res.status(500).json({ error: "Failed to send SMS", details: error.message });
+}
+});
+
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+
+export default app;

@@ -1,9 +1,14 @@
+import { RedisStore } from 'connect-redis';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { eq } from 'drizzle-orm';
 import express, { Request, Response } from 'express';
 import session from 'express-session';
 import passport from 'passport';
 import { Strategy } from 'passport-openidconnect';
+import { createClient } from 'redis';
+import { db } from './db/client';
+import { user } from './db/schema';
 import { requireAuth } from './middleware/auth';
 import { contactsRouter } from './routes/contacts.router';
 import { followUpStatusRouter } from './routes/followUpStatus.router';
@@ -19,6 +24,16 @@ const oktaClientID = process.env.OKTA_CLIENT_ID;
 const oktaClientSecret = process.env.OKTA_CLIENT_SECRET;
 const oktaDomain = process.env.OKTA_DOMAIN_URL;
 const port = process.env.PORT || 3000;
+const sessionRedisURL=`redis://${process.env.SESSION_REDIS_HOST}:${process.env.SESSION_REDIS_PORT}/${process.env.SESSION_REDIS_DB_INDEX}`
+
+const redisClient = createClient({
+  url: sessionRedisURL || "localhost:6379",
+});
+
+redisClient.on('error', (err) => console.error('Redis Client Error', err));
+
+// Connect the client
+redisClient.connect().catch(console.error);
 
 // Proper CORS configuration
 app.use(cors({
@@ -33,9 +48,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(session({
-  secret: 'CanYouLookTheOtherWay',
+  store: new RedisStore({ client: redisClient }),
+  secret: process.env.SESSION_SECRET || 'CanYouLookTheOtherWay',
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
   cookie: {
     secure: false, // Set to true in production with HTTPS
     httpOnly: true,
@@ -80,8 +96,36 @@ app.get('/signin', passport.authenticate('oidc'));
 
 app.get('/authorization-code/callback',
   passport.authenticate('oidc', { failureMessage: true, failWithError: true }),
-  (req: Request, res: Response) => {
-    // Redirect to your frontend after successful auth
+  async (req: Request, res: Response) => {
+    const oktaProfile = req.user as any;
+
+    const email = oktaProfile.username;
+    const username = oktaProfile.displayName || email;
+
+    // Try to find user in DB
+    let appUser = await db.query.user.findFirst({
+      where: (fields, { eq }) => eq(fields.email, email)
+    });
+
+    // If user doesn't exist, create one
+    if (!appUser) {
+      const newUser = await db.insert(user).values({
+        email,
+        username,
+        role: 'admin', // default role, adjust if needed
+        contactId: null // or create a contact record if required
+      }).returning(); 
+
+      appUser = newUser[0];
+      console.log(`✅ Created new user: ${email}`);
+    } else {
+      console.log(`🔄 Found existing user: ${email}`);
+    }
+
+    // Store user ID in session
+    (req.session as any).userId = appUser.id;
+
+    // Redirect to app
     res.redirect('http://localhost:5173/contacts');
   }
 );
@@ -111,10 +155,17 @@ app.get('/signout', (req: Request, res: Response, next: any) => {
       if (err) { return next(err); }
       
       // Redirect for GET requests
-      res.redirect('http://localhost:5173/');
+      res.json({
+        success: true,
+        message: 'Logged out successfully',
+        redirectUrl: 'http://localhost:5173/'
+      });
     });
   });
 });
+
+
+
 
 // Apply auth middleware to all routes in the protected router
 protectedRouter.use(requireAuth);
@@ -124,6 +175,19 @@ protectedRouter.use('/contacts', contactsRouter);
 protectedRouter.use('/users', usersRouter);
 protectedRouter.use('/follow-up-status', followUpStatusRouter);
 protectedRouter.use('/roles', rolesRouter);
+protectedRouter.get('/me', async (req: Request, res: Response) => {
+  const sessionUserId = (req.session as any).userId;
+  
+  if (!sessionUserId) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+
+  const me = await db.query.user.findFirst({
+    where: eq(user.id, sessionUserId)
+  });
+
+  res.json({ user: me });
+});
 
 // Mount the protected router
 app.use('/api', protectedRouter);

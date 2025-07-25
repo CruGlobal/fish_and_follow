@@ -5,6 +5,8 @@ import { getContactsByIds } from '../contacts/search-utils';
 
 import { LanguagesEnum } from 'whatsapp/build/types/enums';
 
+export const whatsappRouter = Router();
+
 // Helper function to fill template parameters with contact data
 const fillTemplateParameters = (
   contact: Record<string, unknown>,
@@ -39,15 +41,13 @@ const fillTemplateParameters = (
   return params;
 };
 
-const router = Router();
-
 // Root endpoint
-router.get('/', (req: Request, res: Response) => {
+whatsappRouter.get('/', (req: Request, res: Response) => {
   res.json({ message: 'WhatsApp API root' });
 });
 
 // Send regular message endpoint
-router.post('/send', async (req: Request, res: Response) => {
+whatsappRouter.post('/send', async (req: Request, res: Response) => {
   try {
     const body = req.body as SendMessageRequest;
     const to = Number(body.to);
@@ -88,7 +88,7 @@ router.post('/send', async (req: Request, res: Response) => {
 });
 
 // Send template messages to multiple contacts by ID
-router.post('/send_template_message', async (req: Request, res: Response) => {
+whatsappRouter.post('/send_template_message', async (req: Request, res: Response) => {
   try {
     console.log('=== Bulk template endpoint called ===');
     const body = req.body as {
@@ -137,7 +137,7 @@ router.post('/send_template_message', async (req: Request, res: Response) => {
     );
 
     // Define the result type for template message sending
-    interface TemplateMessageResult {
+    interface SendTemplateMessageResult {
       contactId: string;
       contactName: string;
       phoneNumber: string;
@@ -147,7 +147,7 @@ router.post('/send_template_message', async (req: Request, res: Response) => {
 
     // Send template messages to all contacts
     const results = await Promise.allSettled(
-      fullContactsToMessage.map(async (contact): Promise<TemplateMessageResult> => {
+      fullContactsToMessage.map(async (contact): Promise<SendTemplateMessageResult> => {
         const phoneNumber = Number(contact.phoneNumber.replace(/\D/g, ''));
         if (isNaN(phoneNumber)) {
           throw new Error(`Invalid phone number for contact ${contact.id}: ${contact.phoneNumber}`);
@@ -187,7 +187,7 @@ router.post('/send_template_message', async (req: Request, res: Response) => {
     // Separate successful and failed sends
     const successful = results
       .filter(
-        (result): result is PromiseFulfilledResult<TemplateMessageResult> =>
+        (result): result is PromiseFulfilledResult<SendTemplateMessageResult> =>
           result.status === 'fulfilled',
       )
       .map((result) => result.value);
@@ -228,7 +228,7 @@ router.post('/send_template_message', async (req: Request, res: Response) => {
 });
 
 // Get all available templates endpoint
-router.get('/templates', async (req: Request, res: Response) => {
+whatsappRouter.get('/templates', async (req: Request, res: Response) => {
   try {
     console.log('=== Get templates endpoint called ===');
 
@@ -299,7 +299,7 @@ router.get('/templates', async (req: Request, res: Response) => {
 });
 
 // Debug endpoint
-router.get('/debug', (req: Request, res: Response) => {
+whatsappRouter.get('/debug', (req: Request, res: Response) => {
   try {
     const envVars = {
       WA_SENDER_PHONE_NUMBER: process.env.WA_SENDER_PHONE_NUMBER,
@@ -326,5 +326,3 @@ router.get('/debug', (req: Request, res: Response) => {
     } as ApiResponse);
   }
 });
-
-export default router;

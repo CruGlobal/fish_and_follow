@@ -3,26 +3,16 @@
 interface ContactFormData {
   firstName: string;
   lastName: string;
-  phoneNumber: string;
   email: string;
-  campus: string;
-  major: string;
-  year: '1st_year' | '2nd_year' | '3rd_year' | '4th_year' | '5th_year' | '6th_year' | '7th_year' | '8th_year' | '9th_year' | '10th_year' | '11th_year';
-  isInterested: boolean;
-  gender: 'male' | 'female';
-  followUpStatusNumber: number | null;
-}
-
-interface ContactSummary {
-  id: string;
-  firstName: string;
-  lastName: string;
+  phone: string;
+  company?: string;
+  message?: string;
 }
 
 interface Contact extends ContactFormData {
   id: string;
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface User {
@@ -33,6 +23,11 @@ interface User {
   status: "active" | "inactive";
   lastLogin?: string;
   createdAt: string;
+}
+interface ContactSummary {
+  id: string;
+  firstName: string;
+  lastName: string;
 }
 
 interface ContactSearchResponse {

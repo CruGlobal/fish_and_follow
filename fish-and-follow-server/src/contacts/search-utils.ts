@@ -17,7 +17,7 @@ export interface ContactField {
   type: string;
 }
 
-// Field metadata mapping for better labels and types
+// Field metadata mapping for better labels and types (using camelCase field names)
 const FIELD_METADATA: Record<string, { label: string; type: string }> = {
   id: { label: 'ID', type: 'text' },
   firstName: { label: 'First Name', type: 'text' },
@@ -37,6 +37,43 @@ const FIELD_METADATA: Record<string, { label: string; type: string }> = {
 export const ALLOWED_CONTACT_FIELDS = Object.keys(contact) as readonly (keyof typeof contact)[];
 
 export const DEFAULT_SEARCH_FIELDS = ['id', 'firstName', 'lastName'] as const;
+
+// Mapping from camelCase field names to database column names
+const FIELD_TO_COLUMN_MAP: Record<string, string> = {
+  id: 'id',
+  firstName: 'first_name',
+  lastName: 'last_name',
+  phoneNumber: 'phone_number',
+  email: 'email',
+  campus: 'campus',
+  major: 'major',
+  year: 'year',
+  isInterested: 'is_interested',
+  gender: 'gender',
+  followUpStatusNumber: 'follow_up_status',
+};
+
+/**
+ * Convert camelCase field names to database column names for raw SQL queries
+ */
+export const getColumnNamesForFields = (fieldNames: string[]): string[] => {
+  return fieldNames
+    .filter(field => field in FIELD_TO_COLUMN_MAP)
+    .map(field => FIELD_TO_COLUMN_MAP[field]);
+};
+
+/**
+ * Convert camelCase field names to database column names with aliases for raw SQL queries
+ */
+export const getColumnNamesWithAliases = (fieldNames: string[]): string => {
+  return fieldNames
+    .filter(field => field in FIELD_TO_COLUMN_MAP)
+    .map(field => {
+      const columnName = FIELD_TO_COLUMN_MAP[field];
+      return columnName === field ? columnName : `${columnName} AS "${field}"`;
+    })
+    .join(', ');
+};
 
 /**
  * Central field management class for contact schema operations

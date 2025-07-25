@@ -5,9 +5,9 @@ export default [
   route("/login", "routes/login.tsx"),
   layout("./components/ProtectedRoute.tsx", [
     route("/admin", "routes/admin.tsx"),
-    route("/qr", "routes/qr.tsx")
+    route("/qr", "routes/qr.tsx"),
+    route("/contacts", "routes/contacts.tsx"),
+    route("/bulkmessaging", "routes/bulkmessaging.tsx")
   ]),
-  route("/contacts", "routes/contacts.tsx"),
-  route("/bulkmessaging", "routes/bulkmessaging.tsx"),
   route("/resources", "routes/resources.tsx"),
 ] satisfies RouteConfig;

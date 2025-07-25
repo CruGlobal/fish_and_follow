@@ -109,9 +109,7 @@ function TemplateSelector({ selectedContacts = [] }: TemplateSelectorProps) {
         parameterMapping: parameterMapping.filter(field => field !== ''), // Remove empty mappings
       }
 
-      console.log("Sending bulk template message:", request)
       const result = await apiService.sendBulkTemplateMessage(request)
-      console.log("Send result:", result)
       
       setSendResult(result)
       setIsSubmitted(true)

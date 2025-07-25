@@ -1,7 +1,5 @@
 import { useState } from "react";
-import WhatsappLink from "~/components/WhatsappLink";
 import type { Route } from "./+types/contacts";
-import { useNavigate } from "react-router";
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -12,16 +10,12 @@ export function meta({ }: Route.MetaArgs) {
 
 interface Contact {
   id: string;
-  first_name: string;
-  last_name: string;
-  phone_number: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  campus: string;
-  major: string;
-  year: 'freshman' | 'sophomore' | 'junior' | 'senior' | 'graduate';
-  is_interested: boolean;
-  gender: 'male' | 'female' | 'non-binary' | 'prefer-not-to-say';
-  follow_up_status: number;
+  phone: string;
+  company?: string;
+  message?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -30,38 +24,29 @@ interface Contact {
 const mockContacts: Contact[] = [
   {
     id: "1",
-    first_name: "John",
-    last_name: "Doe",
+    firstName: "John",
+    lastName: "Doe",
     email: "john.doe@example.com",
-    phone_number: "+1-555-123-4567",
-    campus: "Main Campus",
-    major: "Computer Science",
-    year: "senior",
-    is_interested: true,
-    gender: "male",
-    follow_up_status: 1,
-    createdAt: "2023-06-15T10:30:00Z",
-    updatedAt: "2023-06-15T10:30:00Z",
+    phone: "+1-555-123-4567",
+    company: "Acme Corp",
+    message: "Interested in your services",
+    createdAt: "2025-01-15T10:30:00Z",
+    updatedAt: "2025-01-15T10:30:00Z",
   },
   {
     id: "2",
-    first_name: "Jane",
-    last_name: "Smith",
+    firstName: "Jane",
+    lastName: "Smith",
     email: "jane.smith@example.com",
-    phone_number: "+1-555-987-6543",
-    campus: "North Campus",
-    major: "Business Administration",
-    year: "junior",
-    is_interested: true,
-    gender: "female",
-    follow_up_status: 2,
-    createdAt: "2023-06-15T11:00:00Z",
-    updatedAt: "2023-06-15T11:00:00Z",
+    phone: "+1-555-987-6543",
+    company: "Tech Solutions",
+    message: "Would like to schedule a demo",
+    createdAt: "2025-01-14T14:20:00Z",
+    updatedAt: "2025-01-14T14:20:00Z",
   },
 ];
 
 export default function Contacts() {
-  const navigate = useNavigate();
   const [contacts, setContacts] = useState<Contact[]>(mockContacts);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -69,11 +54,10 @@ export default function Contacts() {
 
   const filteredContacts = contacts.filter(
     (contact) =>
-      contact.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contact.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       contact.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contact.campus.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contact.major.toLowerCase().includes(searchTerm.toLowerCase())
+      contact.company?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleDeleteContact = (id: string) => {
@@ -124,12 +108,6 @@ export default function Contacts() {
                 >
                 Admin Panel
               </a>
-              <button
-                onClick={() => navigate("/")}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700"
-              >
-                Logout
-              </button>
             </div>
           </div>
         </div>
@@ -181,27 +159,25 @@ export default function Contacts() {
                       <div className="flex-1">
                         <div className="flex items-center">
                           <h3 className="text-sm font-medium text-gray-900">
-                            {contact.first_name} {contact.last_name}
+                            {contact.firstName} {contact.lastName}
                           </h3>
-                          <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            {contact.campus}
-                          </span>
-                          <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            {contact.major}
-                          </span>
+                          {contact.company && (
+                            <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                              {contact.company}
+                            </span>
+                          )}
                         </div>
                         <p className="mt-1 text-sm text-gray-600">
                           {contact.email}
                         </p>
                         <p className="mt-1 text-sm text-gray-500">
-                          {contact.phone_number}
+                          {contact.phone}
                         </p>
                         <p className="mt-1 text-xs text-gray-400">
                           Created: {formatDate(contact.createdAt)}
                         </p>
                       </div>
-                      <div className="flex gap-4 ml-4">
-                        <WhatsappLink number="14169965733" message="hi there lol" className="w-32 bg-green-400 text-white"/>
+                      <div className="flex space-x-2 ml-4">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -301,7 +277,7 @@ export default function Contacts() {
                     <div>
                       <label className="block text-sm font-medium text-gray-500">Name</label>
                       <p className="mt-1 text-sm text-gray-900">
-                        {selectedContact.first_name} {selectedContact.last_name}
+                        {selectedContact.firstName} {selectedContact.lastName}
                       </p>
                     </div>
                     <div>
@@ -310,38 +286,30 @@ export default function Contacts() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-500">Phone</label>
-                      <p className="mt-1 text-sm text-gray-900">{selectedContact.phone_number}</p>
+                      <p className="mt-1 text-sm text-gray-900">{selectedContact.phone}</p>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-500">Campus</label>
-                      <p className="mt-1 text-sm text-gray-900">{selectedContact.campus}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-500">Major</label>
-                      <p className="mt-1 text-sm text-gray-900">{selectedContact.major}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-500">Year</label>
-                      <p className="mt-1 text-sm text-gray-900 capitalize">{selectedContact.year}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-500">Interested</label>
-                      <p className="mt-1 text-sm text-gray-900">{selectedContact.is_interested ? 'Yes' : 'No'}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-500">Gender</label>
-                      <p className="mt-1 text-sm text-gray-900 capitalize">{selectedContact.gender}</p>
-                    </div>
+                    {selectedContact.company && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500">Company</label>
+                        <p className="mt-1 text-sm text-gray-900">{selectedContact.company}</p>
+                      </div>
+                    )}
+                    {selectedContact.message && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500">Message</label>
+                        <p className="mt-1 text-sm text-gray-900">{selectedContact.message}</p>
+                      </div>
+                    )}
                     <div>
                       <label className="block text-sm font-medium text-gray-500">Created</label>
                       <p className="mt-1 text-sm text-gray-900">
-                        {selectedContact.createdAt ? formatDate(selectedContact.createdAt) : 'N/A'}
+                        {formatDate(selectedContact.createdAt)}
                       </p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-500">Last Updated</label>
                       <p className="mt-1 text-sm text-gray-900">
-                        {selectedContact.updatedAt ? formatDate(selectedContact.updatedAt) : 'N/A'}
+                        {formatDate(selectedContact.updatedAt)}
                       </p>
                     </div>
                     <div className="pt-4 border-t border-gray-200">

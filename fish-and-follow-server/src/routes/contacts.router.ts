@@ -4,9 +4,8 @@ import { contact } from '../db/schema';
 import { eq, sql, asc } from 'drizzle-orm';
 import {
   parseFieldsParameter,
-  getContactFieldNames,
-  getDefaultContactFields,
   getContactFieldObjects,
+  getColumnNamesWithAliases,
 } from '../contacts/search-utils';
 
 export const contactsRouter = Router();
@@ -22,63 +21,77 @@ contactsRouter.get('/search', async (req: Request, res: Response) => {
 
   const searchThreshold = Math.max(0.1, Math.min(1, parseFloat(threshold as string) || 0.6));
   const maxResults = Math.max(1, Math.min(100, parseInt(limit as string) || 50));
-  const useFuzzy = fuzzy === 'true';
   const hasSearchQuery = search && typeof search === 'string' && search.trim();
 
   // Use utility function to parse and validate fields
-  const fieldsToSelect = parseFieldsParameter(fields);
+  const fieldsToSelect = parseFieldsParameter(fields); // Will return default fields if no fields specified
 
   try {
     let results;
 
     if (hasSearchQuery) {
-      console.log(
-        `🔍 Using ${useFuzzy ? 'fuzzy' : 'exact'} search for: "${search}" with threshold: ${searchThreshold}`,
-      );
-
       const searchQuery = search.trim();
-      const maxDistance = Math.round((1 - searchThreshold) * searchQuery.length);
+      // More lenient distance calculation for better fuzzy matching
+      const maxDistance = Math.max(1, Math.round((1 - searchThreshold) * Math.max(searchQuery.length, 3)));
 
-      // Use raw SQL for fuzzy search since Drizzle doesn't have built-in levenshtein
-      const selectClause = fieldsToSelect.join(', ');
+      // Use raw SQL for fuzzy search with levenshtein now that fuzzystrmatch is installed
+      // Convert field names to database column names with aliases for the SQL query
+      const selectClause = fieldsToSelect.length > 0 ? getColumnNamesWithAliases(fieldsToSelect) : '*';
+      
+      // Create search pattern for substring matching
+      const searchPattern = `%${searchQuery.toLowerCase()}%`;
+      
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const rawResults = await db.execute(
         sql`
           SELECT ${sql.raw(selectClause)}
           FROM ${contact}
-          WHERE levenshtein(${contact.firstName}, ${searchQuery}) <= ${maxDistance}
-            OR levenshtein(${contact.lastName}, ${searchQuery}) <= ${maxDistance}
-          ORDER BY LEAST(
-            levenshtein(${contact.firstName}, ${searchQuery}),
-            levenshtein(${contact.lastName}, ${searchQuery})
-          ) ASC
+          WHERE levenshtein(LOWER(first_name), LOWER(${searchQuery})) <= ${maxDistance}
+            OR levenshtein(LOWER(last_name), LOWER(${searchQuery})) <= ${maxDistance}
+            OR LOWER(first_name) LIKE ${searchPattern}
+            OR LOWER(last_name) LIKE ${searchPattern}
+          ORDER BY 
+            CASE 
+              WHEN LOWER(first_name) = LOWER(${searchQuery}) THEN 1
+              WHEN LOWER(last_name) = LOWER(${searchQuery}) THEN 1
+              WHEN LOWER(first_name) LIKE ${searchPattern} THEN 2
+              WHEN LOWER(last_name) LIKE ${searchPattern} THEN 2
+              WHEN levenshtein(LOWER(first_name), LOWER(${searchQuery})) <= ${maxDistance} THEN 3
+              WHEN levenshtein(LOWER(last_name), LOWER(${searchQuery})) <= ${maxDistance} THEN 3
+              ELSE 4
+            END,
+            LEAST(
+              levenshtein(LOWER(first_name), LOWER(${searchQuery})),
+              levenshtein(LOWER(last_name), LOWER(${searchQuery}))
+            ) ASC
           LIMIT ${maxResults}
         `,
       );
       results = (rawResults as { rows?: unknown[] }).rows || [];
     } else {
       // Use Drizzle query builder for simple queries
-      const query = db
-        .select()
-        .from(contact)
-        .orderBy(asc(contact.firstName), asc(contact.lastName))
-        .limit(maxResults);
-
-      const allResults = await query;
-
-      // Filter fields if specific fields were requested
+      // Build dynamic select based on requested fields
       if (fieldsToSelect.length > 0 && !fieldsToSelect.includes('*')) {
-        results = allResults.map((row) => {
-          const filtered: Record<string, unknown> = {};
-          fieldsToSelect.forEach((field) => {
-            if (field in row) {
-              filtered[field] = row[field as keyof typeof row];
-            }
-          });
-          return filtered;
+        // Create a select object with only the requested fields
+        const selectFields: Record<string, any> = {};
+        fieldsToSelect.forEach((field) => {
+          if (field in contact) {
+            selectFields[field] = contact[field as keyof typeof contact];
+          }
         });
+
+        results = await db
+          .select(selectFields)
+          .from(contact)
+          .orderBy(asc(contact.firstName), asc(contact.lastName))
+          .limit(maxResults);
       } else {
-        results = allResults;
+        // Select all fields if no specific fields requested
+        results = await db
+          .select()
+          .from(contact)
+          .orderBy(asc(contact.firstName), asc(contact.lastName))
+          .limit(maxResults);
       }
     }
 
@@ -89,7 +102,6 @@ contactsRouter.get('/search', async (req: Request, res: Response) => {
       success: true,
       contacts: results,
       query: search || null,
-      fuzzySearch: useFuzzy,
       threshold: searchThreshold,
       total: results.length,
       timestamp: new Date().toISOString(),

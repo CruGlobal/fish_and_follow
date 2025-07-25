@@ -12,7 +12,7 @@ import { contactsRouter } from './routes/contacts.router';
 import { followUpStatusRouter } from './routes/followUpStatus.router';
 import { rolesRouter } from './routes/roles.router';
 import { usersRouter } from './routes/users.router';
-import whatsappRouter from './whatsapp-api/whatsapp-endpoints';
+import { whatsappRouter } from './whatsapp-api/whatsapp.router';
 
 dotenv.config();
 
@@ -38,14 +38,12 @@ app.get('/healthcheck', (_req, res: Response) => {
 });
 
 // Proper CORS configuration
-app.use(
-  cors({
-    origin: ['http://localhost:5173', 'http://localhost:3000'],
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  }),
-);
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // Body parsing middleware
 app.use(express.json());
@@ -79,9 +77,9 @@ passport.use('oidc', new Strategy({
   return done(null, profile);
 }));
 
-  passport.serializeUser((user: any, next: any) => {
-    next(null, user);
-  });
+passport.serializeUser((user: any, next: any) => {
+  next(null, user);
+});
 
 passport.deserializeUser((obj: any, next: any) => {
   next(null, obj);

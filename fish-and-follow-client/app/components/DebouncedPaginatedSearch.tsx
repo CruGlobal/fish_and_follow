@@ -30,10 +30,7 @@ function DebouncedPaginatedSearch({
   // Handle item selection
   const handleSelect = (value: string) => {
     onSelect?.(value);
-    // Clear the search input but keep dropdown open for multiple selections
     setUserSearch("");
-    // Don't close the dropdown - let users add multiple contacts
-    // setOpen(false);
   };
 
   // Use the debounce search hook

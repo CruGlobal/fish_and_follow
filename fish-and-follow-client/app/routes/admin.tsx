@@ -1,26 +1,11 @@
 import { useState } from "react";
-import { Button } from "~/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "~/components/ui/dialog";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
-import type { Route } from "./+types/admin";
-
+import { PageHeaderCentered } from "~/components/PageHeaderCentered";
+import { UsersTable } from "~/components/UsersTable";
 import { ExportFilterDialog } from "~/components/ExportFilterDialog";
 import { useUsers } from "~/lib/userStore";
 import { useContacts } from "~/lib/contactStore";
 import type { Contact } from "~/lib/contactStore";
-
-import { PageHeaderCentered } from "~/components/PageHeaderCentered";
-import { UsersTable } from "~/components/UsersTable";
-
+import type { Route } from "./+types/admin";
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -28,68 +13,6 @@ export function meta({ }: Route.MetaArgs) {
     { name: "description", content: "Manage accounts and system settings" },
   ];
 }
-
-// NOTE: talk to person developing the database schema to ensure this interface definition matches
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: "admin" | "user";
-  status: "active" | "inactive";
-  lastLogin?: string;
-  createdAt: string;
-}
-
-interface SystemStats {
-  totalContacts: number;
-  totalUsers: number;
-  activeUsers: number;
-  newContactsThisWeek: number;
-}
-
-interface NewContact {
-  fullName: string;
-  email: string;
-  phone?: string;
-  organization?: string;
-}
-
-// Mock data
-const mockUsers: User[] = [
-  {
-    id: "1",
-    name: "Admin User",
-    email: "admin@fishfollow.com",
-    role: "admin",
-    status: "active",
-    lastLogin: "2025-01-15T09:30:00Z",
-    createdAt: "2025-01-01T00:00:00Z",
-  },
-  {
-    id: "2",
-    name: "John Manager",
-    email: "john@fishfollow.com",
-    role: "user",
-    status: "active",
-    lastLogin: "2025-01-14T15:45:00Z",
-    createdAt: "2025-01-05T00:00:00Z",
-  },
-  {
-    id: "3",
-    name: "Jane Smith",
-    email: "jane@fishfollow.com",
-    role: "user",
-    status: "inactive",
-    createdAt: "2025-01-10T00:00:00Z",
-  },
-];
-
-const mockStats: SystemStats = {
-  totalContacts: 47,
-  totalUsers: 3,
-  activeUsers: 2,
-  newContactsThisWeek: 12,
-};
 
 export default function Admin() {
   const [showExportDialog, setShowExportDialog] = useState(false);
@@ -120,8 +43,8 @@ export default function Admin() {
     <div className="min-h-screen bg-gray-50 py-2 sm:py-8">
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
         <PageHeaderCentered
-          title="Administration"
-          description="Manage users, permissions and monitor your system activity"
+          title="Admin Panel"
+          description="Manage users and monitor your system activity"
         />
 
         {/* Dashboard Statistics - Mobile Optimized */}

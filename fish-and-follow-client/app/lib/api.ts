@@ -1,7 +1,5 @@
 // API service for handling HTTP requests
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3001/api";
-
 interface ContactFormData {
   firstName: string;
   lastName: string;
@@ -32,7 +30,7 @@ class ApiService {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const url = `${API_BASE_URL}${endpoint}`;
+    const url = `/api${endpoint}`;
     const config: RequestInit = {
       headers: {
         "Content-Type": "application/json",

@@ -8,7 +8,7 @@ export interface IUser {
   username: string
 }
 
-interface IAuthResponse { 
+interface IAuthResponse {
   authenticated: boolean
   user: IUser
 }
@@ -32,37 +32,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const checkAuth = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/auth/status', {
+      const response = await fetch('/auth/status', {
         credentials: 'include'
       });
       const data: IAuthResponse = await response.json();
       if (data.authenticated) {
         setIsAuthenticated(true);
-        setUser({username: data.user.username, displayName: data.user.displayName});
+        setUser({ username: data.user.username, displayName: data.user.displayName });
       } else {
         setIsAuthenticated(false);
-        setUser({username: '', displayName: ''});
+        setUser({ username: '', displayName: '' });
       }
     } catch (error) {
       setIsAuthenticated(false);
-      setUser({username: '', displayName: ''});
+      setUser({ username: '', displayName: '' });
     } finally {
       setLoading(false);
     }
   };
 
   const login = () => {
-    window.location.href = 'http://localhost:3000/signin';
+    window.location.href = '/signin';
   };
 
   const logout = async () => {
     try {
-      await fetch('http://localhost:3000/signout', {
+      await fetch('/signout', {
         method: 'POST',
         credentials: 'include'
       });
       setIsAuthenticated(false);
-      setUser({username: '', displayName: ''});
+      setUser({ username: '', displayName: '' });
       redirect('/')
     } catch (error) {
       console.error('Logout failed:', error);
@@ -74,13 +74,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   return (
-    <AuthContext.Provider value={{ 
-      isAuthenticated, 
+    <AuthContext.Provider value={{
+      isAuthenticated,
       user,
       loading,
-      login, 
-      logout, 
-      checkAuth 
+      login,
+      logout,
+      checkAuth
     }}>
       {children}
     </AuthContext.Provider>

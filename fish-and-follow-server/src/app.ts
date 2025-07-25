@@ -5,6 +5,8 @@ import session from 'express-session';
 import passport from 'passport';
 import { Strategy } from 'passport-openidconnect';
 import { requireAuth } from './middleware/auth';
+import { CipherKey } from 'crypto';
+
 import { qrRouter } from './routes/qrCodeRouter';
 import { contactsRouter } from './routes/contacts.router';
 import { followUpStatusRouter } from './routes/followUpStatus.router';
@@ -19,7 +21,17 @@ const protectedRouter = express.Router();
 const oktaClientID = process.env.OKTA_CLIENT_ID;
 const oktaClientSecret = process.env.OKTA_CLIENT_SECRET;
 const oktaDomain = process.env.OKTA_DOMAIN_URL;
+const sessionSecret = process.env.SESSION_SECRET as CipherKey;
+
 const port = process.env.PORT || 3000;
+
+/**
+ * This is a helathcheck for container monitoring (datadog).
+ * Just needs to respond with 200. Does not require auth.
+ */
+app.get('/healthcheck', (_req, res: Response) => {
+  res.status(200).send("Ok");
+});
 
 // Proper CORS configuration
 app.use(cors({
@@ -34,7 +46,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(session({
-  secret: 'CanYouLookTheOtherWay',
+  secret: sessionSecret,
   resave: false,
   saveUninitialized: true,
   cookie: {
@@ -69,8 +81,12 @@ passport.deserializeUser((obj: any, next: any) => {
   next(null, obj);
 });
 
+app.get('/', (req: Request, res: Response) => {
+  res.send('Hello from Express with TypeScript!');
+});
+
 app.get('/auth/status', (req: Request, res: Response) => {
-  res.json({ 
+  res.json({
     authenticated: req.isAuthenticated(),
     user: req.user || null
   });
@@ -90,15 +106,15 @@ app.get('/authorization-code/callback',
 app.post('/signout', (req: Request, res: Response, next: any) => {
   req.logout((err: any) => {
     if (err) { return next(err); }
-    
+
     req.session.destroy((err: any) => {
       if (err) { return next(err); }
-      
+
       // Send JSON response instead of redirect
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         message: 'Logged out successfully',
-        redirectUrl: 'http://localhost:5173/' 
+        redirectUrl: 'http://localhost:5173/'
       });
     });
   });
@@ -107,10 +123,10 @@ app.post('/signout', (req: Request, res: Response, next: any) => {
 app.get('/signout', (req: Request, res: Response, next: any) => {
   req.logout((err: any) => {
     if (err) { return next(err); }
-    
+
     req.session.destroy((err: any) => {
       if (err) { return next(err); }
-      
+
       // Redirect for GET requests
       res.redirect('http://localhost:5173/');
     });
@@ -133,7 +149,7 @@ app.use('/api', protectedRouter);
 // Error handling middleware
 app.use((err: any, req: Request, res: Response, next: any) => {
   console.error('Error:', err);
-  res.status(500).json({ 
+  res.status(500).json({
     error: 'Internal server error',
     message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
   });

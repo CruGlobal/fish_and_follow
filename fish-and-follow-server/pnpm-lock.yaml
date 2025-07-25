@@ -11,6 +11,9 @@ importers:
       '@types/pg':
         specifier: ^8.15.4
         version: 8.15.4
+      body-parser:
+        specifier: ^2.2.0
+        version: 2.2.0
       cors:
         specifier: ^2.8.5
         version: 2.8.5
@@ -48,6 +51,9 @@ importers:
       '@eslint/js':
         specifier: ^9.31.0
         version: 9.31.0
+      '@types/body-parser':
+        specifier: ^1.19.6
+        version: 1.19.6
       '@types/cors':
         specifier: ^2.8.19
         version: 2.8.19

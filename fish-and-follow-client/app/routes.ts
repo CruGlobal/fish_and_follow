@@ -6,6 +6,7 @@ export default [
   layout("./components/ProtectedRoute.tsx", [
     route("/contacts", "routes/contacts.tsx"),
     route("/admin", "routes/admin.tsx"),
+    route("/qr", "routes/qr.tsx")
   ]),
   route("/resources", "routes/resources.tsx"),
 ] satisfies RouteConfig;

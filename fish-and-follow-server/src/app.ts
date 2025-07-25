@@ -5,6 +5,7 @@ import session from 'express-session';
 import passport from 'passport';
 import { Strategy } from 'passport-openidconnect';
 import { requireAuth } from './middleware/auth';
+import { qrRouter } from './routes/qrCodeRouter';
 import { contactsRouter } from './routes/contacts.router';
 import { followUpStatusRouter } from './routes/followUpStatus.router';
 import { rolesRouter } from './routes/roles.router';
@@ -124,6 +125,7 @@ protectedRouter.use('/contacts', contactsRouter);
 protectedRouter.use('/users', usersRouter);
 protectedRouter.use('/follow-up-status', followUpStatusRouter);
 protectedRouter.use('/roles', rolesRouter);
+protectedRouter.use('/qr', qrRouter);
 
 // Mount the protected router
 app.use('/api', protectedRouter);

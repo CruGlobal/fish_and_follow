@@ -14,7 +14,6 @@ interface ContactItem {
 
 // Helper function to convert ContactSummary to ContactItem
 const contactToItem = (contact: ContactSummary): ContactItem => {
-  console.log('Converting contact:', contact);
   if (!contact || !contact.id) {
     console.warn('Invalid contact object:', contact);
     return {
@@ -47,7 +46,7 @@ export default function BulkMessaging() {
         setItems(contactItems);
         
         if (contactItems.length === 0) {
-          console.log('No contacts found in database');
+          console.error('No contacts found in database');
         }
       } catch (err) {
         console.error('Failed to load contacts:', err);
@@ -65,13 +64,10 @@ export default function BulkMessaging() {
     try {
       setLoading(true);
       setError(null);
-      console.log("Searching for:", query);
       
       const contacts = await apiService.searchContacts(query);
-      console.log("Search results:", contacts);
       // Handle the case where contacts might be undefined or null
       const contactItems = (contacts || []).map(contactToItem);
-      console.log("Found contacts:", contactItems);
       setItems(contactItems);
     } catch (err) {
       console.error('Search failed:', err);

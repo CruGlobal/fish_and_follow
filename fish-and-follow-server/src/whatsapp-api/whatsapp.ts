@@ -162,30 +162,3 @@ export async function getTemplateMessages(): Promise<unknown> {
     console.log('=== END: getTemplateMessages function ===');
   }
 }
-
-// Webhook functionality (currently disabled)
-// To enable webhook server, uncomment the following:
-/*
-function customCallback(
-  statusCode: number,
-  headers: WebhookHeaders,
-  body: WebhookObject | undefined,
-  resp?: WebhookResponse,
-  err?: Error,
-): void {
-  console.log(
-    `Incoming webhook status code: ${statusCode}\n\nHeaders:${JSON.stringify(headers)}\n\nBody: ${JSON.stringify(body ?? {})}`,
-  );
-
-  if (resp) {
-    resp.writeHead(200, { 'Content-Type': 'text/plain' });
-    resp.end();
-  }
-
-  if (err) {
-    console.log(`ERROR: ${err}`);
-  }
-}
-
-wa.webhooks.start(customCallback);
-*/

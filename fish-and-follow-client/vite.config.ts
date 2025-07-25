@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
   server: {
     proxy: {
-      '/qr/': {
+      '/api/qr/': {
         target: 'http://localhost:3000',
         changeOrigin: true,
       }

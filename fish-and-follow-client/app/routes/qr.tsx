@@ -7,7 +7,7 @@ export function meta() {
 
 export default function home() {
   const organization = "test";
-  const imageUrl = `/qr/${organization}`
+  const imageUrl = `/api/qr/${organization}`
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="mx-auto max-w-md">

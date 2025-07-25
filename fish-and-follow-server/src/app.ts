@@ -7,15 +7,16 @@ import { Strategy } from 'passport-openidconnect';
 import { requireAuth } from './middleware/auth';
 import { CipherKey } from 'crypto';
 
+import { qrRouter } from './routes/qrCodeRouter';
 import { contactsRouter } from './routes/contacts.router';
-import { usersRouter } from './routes/users.router';
-import { rolesRouter } from './routes/roles.router';
 import { followUpStatusRouter } from './routes/followUpStatus.router';
-import bodyParser from 'body-parser';
+import { rolesRouter } from './routes/roles.router';
+import { usersRouter } from './routes/users.router';
 
 dotenv.config();
 
 const app = express();
+const protectedRouter = express.Router();
 
 const oktaClientID = process.env.OKTA_CLIENT_ID;
 const oktaClientSecret = process.env.OKTA_CLIENT_SECRET;
@@ -84,16 +85,24 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Hello from Express with TypeScript!');
 });
 
-app.get('/api/auth/status', (req: Request, res: Response) => {
+app.get('/auth/status', (req: Request, res: Response) => {
   res.json({
     authenticated: req.isAuthenticated(),
     user: req.user || null
   });
 });
 
-app.use('/signin', passport.authenticate('oidc'));
+// Auth routes (public)
+app.get('/signin', passport.authenticate('oidc'));
 
-// Fixed signout route
+app.get('/authorization-code/callback',
+  passport.authenticate('oidc', { failureMessage: true, failWithError: true }),
+  (req: Request, res: Response) => {
+    // Redirect to your frontend after successful auth
+    res.redirect('http://localhost:5173/contacts');
+  }
+);
+
 app.post('/signout', (req: Request, res: Response, next: any) => {
   req.logout((err: any) => {
     if (err) { return next(err); }
@@ -111,26 +120,41 @@ app.post('/signout', (req: Request, res: Response, next: any) => {
   });
 });
 
-app.use('/authorization-code/callback',
-  passport.authenticate('oidc', { failureMessage: true, failWithError: true }),
-  (req: Request, res: Response) => {
-    // Redirect to your frontend after successful auth
-    res.redirect('http://localhost:5173/contacts');
-  }
-);
+app.get('/signout', (req: Request, res: Response, next: any) => {
+  req.logout((err: any) => {
+    if (err) { return next(err); }
 
-const protectedRouter = express.Router();
+    req.session.destroy((err: any) => {
+      if (err) { return next(err); }
 
-// Apply auth middleware to all routes in this router
+      // Redirect for GET requests
+      res.redirect('http://localhost:5173/');
+    });
+  });
+});
+
+// Apply auth middleware to all routes in the protected router
 protectedRouter.use(requireAuth);
 
-app.use('/contacts', contactsRouter);
-app.use('/users', usersRouter);
-app.use('/follow-up-status', followUpStatusRouter);
-app.use('/roles', rolesRouter);
+// Protected routes
+protectedRouter.use('/contacts', contactsRouter);
+protectedRouter.use('/users', usersRouter);
+protectedRouter.use('/follow-up-status', followUpStatusRouter);
+protectedRouter.use('/roles', rolesRouter);
+protectedRouter.use('/qr', qrRouter);
+
+// Mount the protected router
+app.use('/api', protectedRouter);
+
+// Error handling middleware
+app.use((err: any, req: Request, res: Response, next: any) => {
+  console.error('Error:', err);
+  res.status(500).json({
+    error: 'Internal server error',
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
+  });
+});
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
-
-export default app;

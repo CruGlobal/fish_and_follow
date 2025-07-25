@@ -59,7 +59,7 @@ app/
    Create a `.env` file in the root directory:
    ```env
    # API Configuration
-   REACT_APP_API_URL=http://localhost:3001/api
+   REACT_APP_API_URL=http://localhost:3001
    
    # Okta Configuration
    REACT_APP_OKTA_CLIENT_ID=your_okta_client_id

@@ -1,4 +1,4 @@
-import pgSession from 'connect-pg-simple';
+import { RedisStore } from 'connect-redis';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { eq } from 'drizzle-orm';
@@ -6,7 +6,8 @@ import express, { Request, Response } from 'express';
 import session from 'express-session';
 import passport from 'passport';
 import { Strategy } from 'passport-openidconnect';
-import { db, pool } from './db/client';
+import { createClient } from 'redis';
+import { db } from './db/client';
 import { user } from './db/schema';
 import { requireAuth } from './middleware/auth';
 import { contactsRouter } from './routes/contacts.router';
@@ -23,6 +24,16 @@ const oktaClientID = process.env.OKTA_CLIENT_ID;
 const oktaClientSecret = process.env.OKTA_CLIENT_SECRET;
 const oktaDomain = process.env.OKTA_DOMAIN_URL;
 const port = process.env.PORT || 3000;
+const sessionRedisURL=`redis://${process.env.SESSION_REDIS_HOST}:${process.env.SESSION_REDIS_PORT}/${process.env.SESSION_REDIS_DB_INDEX}`
+
+const redisClient = createClient({
+  url: sessionRedisURL || "localhost:6379",
+});
+
+redisClient.on('error', (err) => console.error('Redis Client Error', err));
+
+// Connect the client
+redisClient.connect().catch(console.error);
 
 // Proper CORS configuration
 app.use(cors({
@@ -36,13 +47,8 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const PgSession = pgSession(session);
-
 app.use(session({
-  store: new PgSession({
-    pool: pool, 
-    tableName: 'user_sessions'
-  }),
+  store: new RedisStore({ client: redisClient }),
   secret: process.env.SESSION_SECRET || 'CanYouLookTheOtherWay',
   resave: false,
   saveUninitialized: false,

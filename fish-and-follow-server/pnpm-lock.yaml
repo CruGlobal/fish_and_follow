@@ -8,15 +8,9 @@ importers:
 
   .:
     dependencies:
-      '@types/connect-pg-simple':
-        specifier: ^7.0.3
-        version: 7.0.3
-      '@types/pg':
-        specifier: ^8.15.4
-        version: 8.15.4
-      connect-pg-simple:
-        specifier: ^10.0.0
-        version: 10.0.0
+      connect-redis:
+        specifier: ^9.0.0
+        version: 9.0.0(express-session@1.18.1)(redis@5.6.1)
       cors:
         specifier: ^2.8.5
         version: 2.8.5
@@ -47,6 +41,9 @@ importers:
       pg:
         specifier: ^8.16.3
         version: 8.16.3
+      redis:
+        specifier: ^5.6.1
+        version: 5.6.1
     devDependencies:
       '@eslint/js':
         specifier: ^9.31.0
@@ -69,6 +66,9 @@ importers:
       '@types/passport-openidconnect':
         specifier: ^0.1.3
         version: 0.1.3
+      '@types/pg':
+        specifier: ^8.15.4
+        version: 8.15.4
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.37.0
         version: 8.37.0(@typescript-eslint/parser@8.37.0(eslint@9.31.0)(typescript@5.8.3))(eslint@9.31.0)(typescript@5.8.3)
@@ -489,6 +489,34 @@ packages:
     resolution: {integrity: sha512-YLT9Zo3oNPJoBjBc4q8G2mjU4tqIbf5CEOORbUUr48dCD9q3umJ3IPlVqOqDakPfd2HuwccBaqlGhN4Gmr5OWg==}
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
 
+  '@redis/bloom@5.6.1':
+    resolution: {integrity: sha512-5/22U76IMEfn6TeZ+uvjXspHw+ykBF0kpBa8xouzeHaQMXs/auqBUOEYzU2VKYDvnd2RSpPTyIg82oB7PpUgLg==}
+    engines: {node: '>= 18'}
+    peerDependencies:
+      '@redis/client': ^5.6.1
+
+  '@redis/client@5.6.1':
+    resolution: {integrity: sha512-bWHmSFIJ5w1Y4aHsYs46XMDHKQsBHFRhNcllYaBxz2Zl+lu+gbm5yI9BqxvKh48bLTs/Wx1Kns0gN2WIasE8MA==}
+    engines: {node: '>= 18'}
+
+  '@redis/json@5.6.1':
+    resolution: {integrity: sha512-cTggVzPIVuiFeXcEcnTRiUzV7rmUvM9KUYxWiHyjsAVACTEUe4ifKkvzrij0H/z3ammU5tfGACffDB3olBwtVA==}
+    engines: {node: '>= 18'}
+    peerDependencies:
+      '@redis/client': ^5.6.1
+
+  '@redis/search@5.6.1':
+    resolution: {integrity: sha512-+eOjx8O2YoKygjqkLpTHqcAq0zKLjior+ee2tRBx/3RSf1+OHxiC9Y6NstshQpvB1XHqTw9n7+f0+MsRJZrp0g==}
+    engines: {node: '>= 18'}
+    peerDependencies:
+      '@redis/client': ^5.6.1
+
+  '@redis/time-series@5.6.1':
+    resolution: {integrity: sha512-sd3q4jMJdoSO2akw1L9NrdFI1JJ6zeMgMUoTh4a34p9sY3AnOI4aDLCecy8L2IcPAP1oNR3TbLFJiCJDQ35QTA==}
+    engines: {node: '>= 18'}
+    peerDependencies:
+      '@redis/client': ^5.6.1
+
   '@tsconfig/node10@1.0.11':
     resolution: {integrity: sha512-DcRjDCujK/kCk/cUe8Xz8ZSpm8mS3mNNpta+jGCA6USEDfktlNvm1+IuZ9eTcDbNk41BHwpHHeW+N1lKCz4zOw==}
 
@@ -503,9 +531,6 @@ packages:
 
   '@types/body-parser@1.19.6':
     resolution: {integrity: sha512-HLFeCYgz89uk22N5Qg3dvGvsv46B8GLvKKo1zKG4NybA8U2DiEO3w9lqGg29t/tfLRJpJ6iQxnVw4OnB7MoM9g==}
-
-  '@types/connect-pg-simple@7.0.3':
-    resolution: {integrity: sha512-NGCy9WBlW2bw+J/QlLnFZ9WjoGs6tMo3LAut6mY4kK+XHzue//lpNVpAvYRpIwM969vBRAM2Re0izUvV6kt+NA==}
 
   '@types/connect@3.4.38':
     resolution: {integrity: sha512-K6uROf1LD88uDQqJCktA4yzL1YYAK6NgfsI0v/mTgyPKWsX1CnJ0XPSDhViejru1GcRkLWb8RlzFYJRqGUbaug==}
@@ -706,6 +731,10 @@ packages:
     resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
     engines: {node: '>= 8.10.0'}
 
+  cluster-key-slot@1.1.2:
+    resolution: {integrity: sha512-RMr0FhtfXemyinomL4hrWcYJxmX6deFdCxpJzhDttxgO1+bcCnkk+9drydLVDmAMG7NE6aN/fl4F7ucU/90gAA==}
+    engines: {node: '>=0.10.0'}
+
   color-convert@2.0.1:
     resolution: {integrity: sha512-RRECPsj7iu/xb5oKYcsFHSppFNnsj/52OVTRKb4zP5onXwVF3zVmmToNcOfGC+CRDpfK/U584fMg38ZHCaElKQ==}
     engines: {node: '>=7.0.0'}
@@ -716,9 +745,12 @@ packages:
   concat-map@0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
 
-  connect-pg-simple@10.0.0:
-    resolution: {integrity: sha512-pBGVazlqiMrackzCr0eKhn4LO5trJXsOX0nQoey9wCOayh80MYtThCbq8eoLsjpiWgiok/h+1/uti9/2/Una8A==}
-    engines: {node: ^18.18.0 || ^20.9.0 || >=22.0.0}
+  connect-redis@9.0.0:
+    resolution: {integrity: sha512-QwzyvUePTMvEzG1hy45gZYw3X3YHrjmEdSkayURlcZft7hqadQ3X39wYkmCqblK2rGlw+XItELYt6GnyG6DEIQ==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      express-session: '>=1'
+      redis: '>=5'
 
   content-disposition@1.0.0:
     resolution: {integrity: sha512-Au9nRL8VNUut/XSzbQA38+M78dzP4D+eqg3gfJHMIHHYa3bg067xj1KxMUWj+VULbiZMowKngFFbKczUrNJ1mg==}
@@ -1418,6 +1450,10 @@ packages:
     resolution: {integrity: sha512-hOS089on8RduqdbhvQ5Z37A0ESjsqz6qnRcffsMU3495FuTdqSm+7bhJ29JvIOsBDEEnan5DPu9t3To9VRlMzA==}
     engines: {node: '>=8.10.0'}
 
+  redis@5.6.1:
+    resolution: {integrity: sha512-O9DwAvcBm/lrlkGE0A6gNBtUdA8J9oD9njeLYlLzmm+MGTR7nd7VkpspfXqeXFg3gm89zldDqckyaHhXfhY80g==}
+    engines: {node: '>= 18'}
+
   resolve-from@4.0.0:
     resolution: {integrity: sha512-pb/MYmXstAkysRFx8piNI1tGFNQIFA3vkE3Gq4EuA1dF6gHp/+vgZqsCGJapvy8N3Q+4o7FwvquPJcnZ7RYy4g==}
     engines: {node: '>=4'}
@@ -1867,6 +1903,26 @@ snapshots:
 
   '@pkgr/core@0.2.7': {}
 
+  '@redis/bloom@5.6.1(@redis/client@5.6.1)':
+    dependencies:
+      '@redis/client': 5.6.1
+
+  '@redis/client@5.6.1':
+    dependencies:
+      cluster-key-slot: 1.1.2
+
+  '@redis/json@5.6.1(@redis/client@5.6.1)':
+    dependencies:
+      '@redis/client': 5.6.1
+
+  '@redis/search@5.6.1(@redis/client@5.6.1)':
+    dependencies:
+      '@redis/client': 5.6.1
+
+  '@redis/time-series@5.6.1(@redis/client@5.6.1)':
+    dependencies:
+      '@redis/client': 5.6.1
+
   '@tsconfig/node10@1.0.11': {}
 
   '@tsconfig/node12@1.0.11': {}
@@ -1879,12 +1935,6 @@ snapshots:
     dependencies:
       '@types/connect': 3.4.38
       '@types/node': 24.0.14
-
-  '@types/connect-pg-simple@7.0.3':
-    dependencies:
-      '@types/express': 5.0.3
-      '@types/express-session': 1.18.2
-      '@types/pg': 8.15.4
 
   '@types/connect@3.4.38':
     dependencies:
@@ -2156,6 +2206,8 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.3
 
+  cluster-key-slot@1.1.2: {}
+
   color-convert@2.0.1:
     dependencies:
       color-name: 1.1.4
@@ -2164,11 +2216,10 @@ snapshots:
 
   concat-map@0.0.1: {}
 
-  connect-pg-simple@10.0.0:
+  connect-redis@9.0.0(express-session@1.18.1)(redis@5.6.1):
     dependencies:
-      pg: 8.16.3
-    transitivePeerDependencies:
-      - pg-native
+      express-session: 1.18.1
+      redis: 5.6.1
 
   content-disposition@1.0.0:
     dependencies:
@@ -2811,6 +2862,14 @@ snapshots:
   readdirp@3.6.0:
     dependencies:
       picomatch: 2.3.1
+
+  redis@5.6.1:
+    dependencies:
+      '@redis/bloom': 5.6.1(@redis/client@5.6.1)
+      '@redis/client': 5.6.1
+      '@redis/json': 5.6.1(@redis/client@5.6.1)
+      '@redis/search': 5.6.1(@redis/client@5.6.1)
+      '@redis/time-series': 5.6.1(@redis/client@5.6.1)
 
   resolve-from@4.0.0: {}
 

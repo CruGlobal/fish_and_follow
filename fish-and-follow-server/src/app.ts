@@ -12,6 +12,7 @@ import { contactsRouter } from './routes/contacts.router';
 import { followUpStatusRouter } from './routes/followUpStatus.router';
 import { rolesRouter } from './routes/roles.router';
 import { usersRouter } from './routes/users.router';
+import { whatsappRouter } from './whatsapp-api/whatsapp.router';
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ const protectedRouter = express.Router();
 const oktaClientID = process.env.OKTA_CLIENT_ID;
 const oktaClientSecret = process.env.OKTA_CLIENT_SECRET;
 const oktaDomain = process.env.OKTA_DOMAIN_URL;
+
 const sessionSecret = process.env.SESSION_SECRET as CipherKey;
 
 const port = process.env.PORT || 3000;
@@ -142,6 +144,7 @@ protectedRouter.use('/users', usersRouter);
 protectedRouter.use('/follow-up-status', followUpStatusRouter);
 protectedRouter.use('/roles', rolesRouter);
 protectedRouter.use('/qr', qrRouter);
+protectedRouter.use('/whatsapp', whatsappRouter);
 
 // Mount the protected router
 app.use('/api', protectedRouter);

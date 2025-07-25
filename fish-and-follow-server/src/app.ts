@@ -22,8 +22,6 @@ const protectedRouter = express.Router();
 const oktaClientID = process.env.OKTA_CLIENT_ID;
 const oktaClientSecret = process.env.OKTA_CLIENT_SECRET;
 const oktaDomain = process.env.OKTA_DOMAIN_URL;
-import whatsappRouter from './whatsapp-api/whatsapp-endpoints';
-import contactsRouter from './contacts/contact-endpoints';
 
 const sessionSecret = process.env.SESSION_SECRET as CipherKey;
 

@@ -17,7 +17,7 @@ contactsRouter.get('/', async (_req, res) => {
 });
 
 contactsRouter.get('/search', async (req: Request, res: Response) => {
-  const { search = '', fuzzy = 'true', threshold = '0.6', limit = '50', fields } = req.query;
+  const { search = '', threshold = '0.6', limit = '50', fields } = req.query;
 
   const searchThreshold = Math.max(0.1, Math.min(1, parseFloat(threshold as string) || 0.6));
   const maxResults = Math.max(1, Math.min(100, parseInt(limit as string) || 50));
@@ -68,6 +68,7 @@ contactsRouter.get('/search', async (req: Request, res: Response) => {
         `,
       );
       results = (rawResults as { rows?: unknown[] }).rows || [];
+      console.log(results);
     } else {
       // Use Drizzle query builder for simple queries
       // Build dynamic select based on requested fields

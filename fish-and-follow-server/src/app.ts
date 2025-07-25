@@ -144,7 +144,7 @@ protectedRouter.use('/users', usersRouter);
 protectedRouter.use('/follow-up-status', followUpStatusRouter);
 protectedRouter.use('/roles', rolesRouter);
 protectedRouter.use('/qr', qrRouter);
-app.use('/whatsapp', whatsappRouter);
+protectedRouter.use('/whatsapp', whatsappRouter);
 
 // Mount the protected router
 app.use('/api', protectedRouter);

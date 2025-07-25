@@ -117,21 +117,13 @@ class ApiService {
   ): Promise<T> {
     const url = `/api${endpoint}`;
     const config: RequestInit = {
+      credentials: 'include', // Include cookies for session-based auth
       headers: {
         "Content-Type": "application/json",
         ...options.headers,
       },
       ...options,
     };
-
-    // Add auth token if available
-    const token = localStorage.getItem("auth_token");
-    if (token) {
-      config.headers = {
-        ...config.headers,
-        Authorization: `Bearer ${token}`,
-      };
-    }
 
     try {
       const response = await fetch(url, config);
@@ -255,11 +247,44 @@ class ApiService {
   }
 
   // Auth endpoints
-  async login(credentials: { email: string; password: string }): Promise<{ user: User; token: string }> {
-    return this.request<{ user: User; token: string }>("/auth/login", {
-      method: "POST",
-      body: JSON.stringify(credentials),
+  async getAuthStatus(): Promise<{ authenticated: boolean; user: any | null }> {
+    // Call the backend's auth status endpoint directly (not through /api since it's not protected)
+    const url = "http://localhost:3000/auth/status";
+    const response = await fetch(url, {
+      credentials: 'include', // Include cookies
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
+  }
+
+  // Redirect to backend's OAuth login
+  redirectToLogin(): void {
+    window.location.href = "http://localhost:3000/signin";
+  }
+
+  // Call backend's logout endpoint
+  async logout(): Promise<void> {
+    const url = "http://localhost:3000/signout";
+    const response = await fetch(url, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
   }
 
   // Template endpoints

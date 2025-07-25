@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Route } from "./+types/login";
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ }: Route.MetaArgs) {
   return [
     { title: "Login - Fish and Follow" },
     { name: "description", content: "Sign in to your account" },
@@ -14,7 +14,7 @@ export default function Login() {
   const handleOktaLogin = async () => {
     setIsLoading(true);
     try {
-      window.location.href = 'http://localhost:3000/signin';
+      window.location.href = '/signin';
     } catch (error) {
       console.error("Login error:", error);
     } finally {

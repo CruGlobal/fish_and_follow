@@ -32,7 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const checkAuth = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/auth/status', {
+      const response = await fetch('/auth/status', {
         credentials: 'include'
       });
       const data: IAuthResponse = await response.json();

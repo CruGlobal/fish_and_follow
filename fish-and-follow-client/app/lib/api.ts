@@ -30,7 +30,7 @@ class ApiService {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const url = endpoint;
+    const url = `/api${endpoint}`;
     const config: RequestInit = {
       headers: {
         "Content-Type": "application/json",

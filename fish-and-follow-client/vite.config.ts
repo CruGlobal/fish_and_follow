@@ -13,6 +13,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': devServer,
+      '/auth/status': devServer,
       '/signin': devServer,
       '/signout': devServer,
     }

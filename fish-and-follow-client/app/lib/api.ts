@@ -21,7 +21,7 @@ interface User {
   id: string;
   name: string;
   email: string;
-  role: "admin" | "user";
+  role: "admin" | "staff"; // Seulement 2 rôles maintenant
   status: "active" | "inactive";
   lastLogin?: string;
   createdAt: string;
@@ -98,7 +98,7 @@ class ApiService {
     return this.request<User[]>("/users");
   }
 
-  async createUser(data: { name: string; email: string; role: "admin" | "user" }): Promise<User> {
+  async createUser(data: { name: string; email: string; role: "admin" | "staff" }): Promise<User> {
     return this.request<User>("/users", {
       method: "POST",
       body: JSON.stringify(data),

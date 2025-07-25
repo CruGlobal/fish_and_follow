@@ -13,7 +13,7 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import type { Route } from "./+types/admin";
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ }: Route.MetaArgs) {
   return [
     { title: "Admin Panel - Fish and Follow" },
     { name: "description", content: "Manage accounts and system settings" },
@@ -28,7 +28,7 @@ interface User {
   role: "admin" | "user";
   status: "active" | "inactive";
   lastLogin?: string;
-  createdAt: string;  
+  createdAt: string;
 }
 
 interface SystemStats {
@@ -96,8 +96,8 @@ export default function Admin() {
   });
 
   const handleToggleUserStatus = (userId: string) => {
-    setUsers(users.map(user => 
-      user.id === userId 
+    setUsers(users.map(user =>
+      user.id === userId
         ? { ...user, status: user.status === "active" ? "inactive" : "active" as const }
         : user
     ));
@@ -124,7 +124,7 @@ export default function Admin() {
     // Here you would typically send the data to your API
     console.log("New contact created:", newContact);
     alert(`Contact created successfully!\n\nName: ${newContact.fullName}\nEmail: ${newContact.email}`);
-    
+
     // Reset form and close dialog
     setNewContact({ fullName: "", email: "", phone: "", organization: "" });
     setShowNewContact(false);
@@ -155,8 +155,8 @@ export default function Admin() {
             <div className="flex space-x-4">
               <Dialog open={showNewContact} onOpenChange={setShowNewContact}>
                 <DialogTrigger asChild>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 text-blue-700 hover:from-blue-100 hover:to-indigo-100 hover:border-blue-300 transition-all duration-200 shadow-sm"
                   >
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -179,18 +179,18 @@ export default function Admin() {
                       Add a new contact to your database.
                     </DialogDescription>
                   </DialogHeader>
-                  
+
                   <form onSubmit={handleSubmitNewContact} className="space-y-3 pt-3">
                     {/* Personal Information Section */}
                     <div className="space-y-2">
                       <h3 className="text-xs font-medium text-blue-800 border-l-2 border-blue-600 pl-2">
                         Personal Information
                       </h3>
-                      
+
                       <div className="grid grid-cols-1 gap-2">
                         <div className="space-y-1">
-                          <Label 
-                            htmlFor="fullName" 
+                          <Label
+                            htmlFor="fullName"
                             className="text-xs font-medium text-blue-800 flex items-center"
                           >
                             <svg className="w-3 h-3 mr-1 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -209,8 +209,8 @@ export default function Admin() {
                         </div>
 
                         <div className="space-y-1">
-                          <Label 
-                            htmlFor="email" 
+                          <Label
+                            htmlFor="email"
                             className="text-xs font-medium text-blue-800 flex items-center"
                           >
                             <svg className="w-3 h-3 mr-1 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -236,11 +236,11 @@ export default function Admin() {
                       <h3 className="text-xs font-medium text-blue-800 border-l-2 border-blue-600 pl-2">
                         Contact Information
                       </h3>
-                      
+
                       <div className="grid grid-cols-1 gap-2">
                         <div className="space-y-1">
-                          <Label 
-                            htmlFor="phone" 
+                          <Label
+                            htmlFor="phone"
                             className="text-xs font-medium text-blue-800 flex items-center"
                           >
                             <svg className="w-3 h-3 mr-1 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -259,8 +259,8 @@ export default function Admin() {
                         </div>
 
                         <div className="space-y-1">
-                          <Label 
-                            htmlFor="organization" 
+                          <Label
+                            htmlFor="organization"
                             className="text-xs font-medium text-blue-800 flex items-center"
                           >
                             <svg className="w-3 h-3 mr-1 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -281,15 +281,15 @@ export default function Admin() {
 
                     {/* Form Actions */}
                     <DialogFooter className="pt-3 border-t border-blue-200 flex-col sm:flex-row gap-2">
-                      <Button 
-                        type="button" 
-                        variant="outline" 
+                      <Button
+                        type="button"
+                        variant="outline"
                         onClick={() => setShowNewContact(false)}
                         className="w-full sm:w-auto order-2 sm:order-1 text-xs h-8 transition-all duration-200 border-blue-300 text-blue-700 hover:bg-blue-50"
                       >
                         Cancel
                       </Button>
-                      <Button 
+                      <Button
                         type="submit"
                         className="w-full sm:w-auto order-1 sm:order-2 text-xs h-8 bg-blue-600 hover:bg-blue-700 transition-all duration-200 shadow-sm hover:shadow-md"
                       >
@@ -303,6 +303,13 @@ export default function Admin() {
                 </DialogContent>
               </Dialog>
               <a
+                href="/qr"
+                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              >
+                Share the Form
+              </a>
+              {/**}
+              <a
                 href="/contacts"
                 className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
               >
@@ -314,6 +321,7 @@ export default function Admin() {
               >
                 Logout
               </button>
+              {*/}
             </div>
           </div>
         </div>
@@ -470,9 +478,8 @@ export default function Admin() {
                 {users.map((user) => (
                   <div
                     key={user.id}
-                    className={`px-6 py-4 hover:bg-gray-50 cursor-pointer ${
-                      selectedUser?.id === user.id ? "bg-blue-50" : ""
-                    }`}
+                    className={`px-6 py-4 hover:bg-gray-50 cursor-pointer ${selectedUser?.id === user.id ? "bg-blue-50" : ""
+                      }`}
                     onClick={() => setSelectedUser(user)}
                   >
                     <div className="flex justify-between items-start">
@@ -482,20 +489,18 @@ export default function Admin() {
                             {user.name}
                           </h3>
                           <span
-                            className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              user.role === "admin"
-                                ? "bg-purple-100 text-purple-800"
-                                : "bg-gray-100 text-gray-800"
-                            }`}
+                            className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.role === "admin"
+                              ? "bg-purple-100 text-purple-800"
+                              : "bg-gray-100 text-gray-800"
+                              }`}
                           >
                             {user.role}
                           </span>
                           <span
-                            className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              user.status === "active"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-red-100 text-red-800"
-                            }`}
+                            className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.status === "active"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                              }`}
                           >
                             {user.status}
                           </span>
@@ -513,11 +518,10 @@ export default function Admin() {
                             e.stopPropagation();
                             handleToggleUserStatus(user.id);
                           }}
-                          className={`text-sm font-medium ${
-                            user.status === "active"
-                              ? "text-red-600 hover:text-red-900"
-                              : "text-green-600 hover:text-green-900"
-                          }`}
+                          className={`text-sm font-medium ${user.status === "active"
+                            ? "text-red-600 hover:text-red-900"
+                            : "text-green-600 hover:text-green-900"
+                            }`}
                         >
                           {user.status === "active" ? "Deactivate" : "Activate"}
                         </button>

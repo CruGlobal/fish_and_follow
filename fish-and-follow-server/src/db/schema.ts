@@ -1,14 +1,12 @@
-import {
-    pgTable, serial, uuid, varchar, boolean, integer,
-    pgEnum, text, timestamp
-} from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
+import {
+    boolean, integer,
+    pgEnum,
+    pgTable, uuid, varchar,
+} from 'drizzle-orm/pg-core';
 
-// Define enums used in the schema:
 export const RoleEnum = pgEnum('role_enum', ['admin', 'user']);
 
-// change year to 1st,2nd,3rd,4th...
-// export const YearEnum = pgEnum('year_enum', ['freshman', 'sophomore', 'junior', 'senior']);
 export const YearEnum = pgEnum('year_enum', [
   '1st_year',
   '2nd_year',
@@ -23,9 +21,8 @@ export const YearEnum = pgEnum('year_enum', [
   '11th_year'
 ]);
 
-export const GenderEnum = pgEnum('gender_enum', ['male', 'female'])
+export const GenderEnum = pgEnum('gender_enum', ['male', 'female']) 
 
-// user table
 export const user = pgTable('user', {
     id: uuid('id').primaryKey().defaultRandom(),
     role: RoleEnum('role').notNull(),
@@ -50,7 +47,6 @@ export const contact = pgTable('contact', {
     followUpStatusNumber: integer('follow_up_status').references(() => followUpStatus.number),
 });
 
-// follow_up_status table
 export const followUpStatus = pgTable('follow_up_status', {
     number: integer('number').primaryKey(),
     description: varchar('description', { length: 255 }).notNull(),

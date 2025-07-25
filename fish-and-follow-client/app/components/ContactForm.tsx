@@ -4,27 +4,19 @@ import SubmitConfirmation from "./SubmitConfirmation";
 interface ContactFormData {
   firstName: string;
   lastName: string;
-  phoneNumber: string;
   email: string;
-  campus: string;
-  major: string;
-  year: '1st_year' | '2nd_year' | '3rd_year' | '4th_year' | '5th_year' | '6th_year' | '7th_year' | '8th_year' | '9th_year' | '10th_year' | '11th_year';
-  isInterested: boolean;
-  gender: 'male' | 'female';
-  followUpStatusNumber: number;
+  phone: string;
+  company?: string;
+  message?: string;
 }
 
 const initialFormData: ContactFormData = {
   firstName: "",
   lastName: "",
-  phoneNumber: "",
   email: "",
-  campus: "",
-  major: "",
-  year: "1st_year",
-  isInterested: false,
-  gender: "male",
-  followUpStatusNumber: 1,
+  phone: "",
+  company: "",
+  message: "",
 };
 
 export function ContactForm() {
@@ -60,14 +52,10 @@ export function ContactForm() {
   };
 
   if (submitted) {
-    return (
-      <SubmitConfirmation
-        onClose={() => {
-          setSubmitted(false);
-          setFormData(initialFormData);
-        }}
-      />
-    );
+    return (<SubmitConfirmation onClose={() => {
+      setSubmitted(false);
+      setFormData(initialFormData);
+    }}/>);
   }
 
   return (
@@ -84,9 +72,9 @@ export function ContactForm() {
             <input
               type="text"
               id="firstName"
-              name="first_name"
+              name="firstName"
               required
-              value={formData.first_name}
+              value={formData.firstName}
               onChange={handleInputChange}
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900 bg-white px-3 py-2"
             />
@@ -101,9 +89,9 @@ export function ContactForm() {
             <input
               type="text"
               id="lastName"
-              name="last_name"
+              name="lastName"
               required
-              value={formData.last_name}
+              value={formData.lastName}
               onChange={handleInputChange}
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900 bg-white px-3 py-2"
             />
@@ -138,9 +126,9 @@ export function ContactForm() {
           <input
             type="tel"
             id="phone"
-            name="phone_number"
+            name="phone"
             required
-            value={formData.phone_number}
+            value={formData.phone}
             onChange={handleInputChange}
             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900 bg-white px-3 py-2"
           />
